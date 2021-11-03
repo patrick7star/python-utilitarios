@@ -5,9 +5,10 @@ de alguma diretório passado como argumento.
 
 
 # biblioteca do Python:
-import os.path,os
+import os.path, os
 from os import listdir
-from os.path import basename, join, realpath, isdir, isfile, abspath
+from os.path import (basename, join, realpath, 
+                     isdir, isfile, abspath)
 import enum
 
 # abre arquivo temporário para
@@ -367,21 +368,33 @@ __all__ = ["arvore"]
 
 
 if __name__ == "__main__":
+   """ 
+   o teste abaixo funciona apenas em 
+   plataforma linux; e se tiver os 
+   diretórios/sub-diretórios explicitados.
+   """
+   if sys.platform == "linux":
+      # mudando expessura do galho.
+      alterna_galho(GalhoTipo.FINO)
+      
+      # provavelmente funciona na maioria dos 
+      # linux, definido em língua-inglesa.
+      caminho = os.getenv("HOME") + '/Pictures'
+      print(esboco(caminho))
+      print(esboco(caminho, True))
 
-   alterna_galho(GalhoTipo.FINO)
+      nucleo = os.getenv("HOME")+"/Documents"
+      if __debug__:
+         print("\no que saí: \"%s\""%nucleo)
 
-   caminho = '/home/savio/Pictures'
-   print(esboco(caminho))
-   print(esboco(caminho, True))
-
-   caminho = '/home/savio/Documents/códigos/numeros_primos_gerados/'
-   print(esboco(caminho))
-   print(esboco(caminho, True))
+      caminho = nucleo + '/códigos/numeros_primos_gerados/'
+      print(esboco(caminho))
+      print(esboco(caminho, True))
 
 
-   caminho = '/home/savio/Documents/códigos'
-   print(arvore(caminho))
-   print(arvore(caminho, True))
+      caminho = nucleo + '/códigos'
+      print(arvore(caminho))
+      print(arvore(caminho, True))
 
 
 
