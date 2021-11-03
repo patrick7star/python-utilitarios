@@ -9,7 +9,7 @@ import os.path, os
 from os import listdir
 from os.path import (basename, join, realpath, 
                      isdir, isfile, abspath)
-import enum
+import enum, sys
 
 # abre arquivo temporário para
 # escreva trilha de espaços, não vai
