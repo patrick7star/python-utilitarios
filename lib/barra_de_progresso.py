@@ -218,14 +218,16 @@ class TextoMovimento(Rotatoria):
 
 
 def progresso_rotulo(rotulo, qtd_atual, qtd_total,
-                     dados=False, dinamico=True):
-   """ retorna string contendo barra de progresso, porém com um
+dados=False, dinamico=True):
+   """
+   retorna string contendo barra de progresso, porém com um
    rótulo, que também é animado caso preciso. O modo
    dinâmico é o padrão, tal modo é preciso ter a razão
    m/n, em que m=n, pois só encerra tal execução assim. O
    oposto/desativação disto é o estático, onde a execução
    termina na única impressão; tais modos alternativos
-   traduzem-se na movimentação ou não do rótulo."""
+   traduzem-se na movimentação ou não do rótulo.
+   """
    # já pega a barra pronta de funções anteriores.
    barra_progresso = progresso(qtd_atual, qtd_total, dados)
    # largura atual da tela do terminal.
@@ -264,11 +266,13 @@ def progresso_rotulo(rotulo, qtd_atual, qtd_total,
 
 
 def progresso_redimensionavel(qtd_atual, qtd_total):
-   """retorna uma string contendo informações, e a barra de
+   """
+   retorna uma string contendo informações, e a barra de
    progresso, assim com a outra, porém este, especifícamente
    o progresso(parte do carregamento) é redimensionável de
    acordo com a dimensão da janela, e também preenche-a
-   completamente."""
+   completamente.
+   """
    #porcentagem da tarefa realizada.
    percentagem = qtd_atual / qtd_total
    if percentagem > 1:
@@ -307,6 +311,183 @@ def progresso_redimensionavel(qtd_atual, qtd_total):
                              percentagem*100, espaco=espacamento)
 
 
+class ProgressoPercentual():
+   """
+   Barra que retorna string dado uma variação
+   percentual razoável. A impressão sempre tem
+   que ser tratada, pois se não haver variação
+   percentual sempre gerará uma exceção no lugar.
+   """
+   # limite percentual para mostrar a mensagem.
+   limite = 1.5
+
+   # construtor.
+   def __init__(self, total):
+      # máximo a atingir.
+      self.qtd_total = total
+      # começa do nada, zerado.
+      self.qtd_atual = 0
+      # percentual do progresso.
+      self._percentual = 0.0 * 100
+   ...
+
+   # implementação da atualização de valor.
+   def __iadd__(self, novo_valor):
+      "faz uma atualização do valor via '+=' simbologia"
+      # registrando nova quantidade.
+      (qt, qa) = (self.qtd_total, self.qtd_atual)
+      self._percentual = (qa / qt) * 100
+      self.qtd_atual = novo_valor
+      return self
+   ...
+
+   # implementação da visualização do objeto.
+   def __repr__(self):
+      "visualização da barra via impressão"
+      # apelidos novos para ajudar na legiblidade.
+      percentual = self._percentual
+      limite = ProgressoPercentual.limite
+      # proposições importantes:
+      atingiu_limite = (percentual % limite) == 0
+      atingiu_total = self.qtd_atual == self.qtd_total
+      # veriifcando a variancia de percetual.
+      # se tiver "transbordado" mais de 0,5%,
+      # então a string real será retornada.
+      if atingiu_total or atingiu_limite:
+         # terceirizando tarefa de criar uma 
+         # barra em sí.
+         return progresso(self.qtd_atual, self.qtd_total)
+      else:
+         # Caso contrário será retornado
+         # dado nenhum.
+         return "None"
+   ...
+
+   def __str__(self):
+      "retornando implementação de __repr__"
+      return self.__repr__()
+...
+
+#[código morto]
+class ProgressoTemporal(threading.Thread):
+   """
+   retornará um impresões num devido tempo
+   limitado, e não uma string para cada
+   valor atualizado.
+   """
+   # limite em millisegundos para mostrar a mensagem.
+   limite = 3_000
+
+   # construtor.
+   def __init__(self, total):
+      # máximo a atingir.
+      self.qtd_total = total
+      # começa do nada, zerado.
+      self.qtd_atual = 0
+      # valor que indica se tem permissão para 
+      # imprimir tal string.
+      self.permitido = True
+      threading.Thread.__init__(self)
+   ...
+
+   def run(self):
+      # enquanto não atingir tal valor alternar
+      # permissão e interromper por determinado
+      # tempo a execução da thread.
+      while self.qtd_atual < self.qtd_total:
+         # alterna impressão a cada tempo delimitado.
+         self.permitido = (not self.permitido)
+         # tempo delimitado, interrompe thread.
+         tempo = ProgressoTemporal.limite / 1_000
+         sleep(tempo)
+      else:
+         # sempre verdade agora que o progresso
+         # foi esgotado.
+         self.permitido = True
+      ...
+   ...
+
+   # implementação da atualização de valor.
+   def __iadd__(self, novo_valor):
+      "faz uma atualização do valor via '+=' simbologia"
+      # registrando nova quantidade.
+      self.qtd_atual = novo_valor
+      return self
+   ...
+
+   # implementação da visualização do objeto.
+   def __repr__(self):
+      "visualização da barra via impressão"
+      # imprime num tempo regular.
+      if self.permitido:
+         return progresso(self.qtd_atual, self.qtd_total)
+      else:
+         return "None"
+   ...
+   def __str__(self):
+      "retornando implementação de __repr__"
+      return self.__repr__()
+...
+
+# nova implementação de outro modo, sem threads.
+class ProgressoTemporal_I():
+   """
+   retornará um impresões num devido tempo
+   limitado, e não uma string para cada
+   valor atualizado.
+   """
+   # limite em millisegundos para mostrar a mensagem.
+   limite = 700/1_000
+
+   # construtor.
+   def __init__(self, total):
+      # máximo a atingir.
+      self.qtd_total = total
+      # começa do nada, zerado.
+      self.qtd_atual = 0
+      # tempo de inicio.
+      self.tempo_inicial = time()
+      # permissão de exibição.
+      self.permitido = False
+   ...
+
+   # implementação da atualização de valor.
+   def __iadd__(self, novo_valor):
+      "faz uma atualização do valor via '+=' simbologia"
+      # para melhor legibilidade ...
+      tempo = time()
+      diferenca = tempo - self.tempo_inicial
+      limite = ProgressoTemporal_I.limite
+      # registrando nova quantidade.
+      self.qtd_atual = novo_valor
+      if diferenca > limite:
+         self.permitido = True
+         # zera contagem.
+         self.tempo_inicial = tempo
+      return self
+   ...
+
+   # implementação da visualização do objeto.
+   def __repr__(self):
+      "visualização da barra via impressão"
+      # proposições:
+      alcancou_o_fim = (
+         self.qtd_atual == self.qtd_total
+         or self.qtd_atual == 0
+      )
+      # imprime num tempo regular.
+      if self.permitido or alcancou_o_fim:
+         # falseando novamente.
+         self.permitido = False
+         return progresso(self.qtd_atual, self.qtd_total)
+      else:
+         return str(None)
+   ...
+
+   def __str__(self):
+      return  self.__repr__()
+...
+
 # o que será importado:
 __all__ = [
    "PorcentagemError",
@@ -314,6 +495,9 @@ __all__ = [
    "progresso",
    "FimDoProgressoError",
    "progresso_rotulo",
-   "progresso_redimensionavel"
+   "progresso_redimensionavel",
+   "ProgressoPercentual",
+   "ProgressoTemporal",
+   "ProgressoTemporal_I"
 ]
 
