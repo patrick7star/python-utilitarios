@@ -3,23 +3,20 @@
 e arquivará o tamanho de cada, a quantidade
 de arquivos neles e etc.
 '''
+from enum import Enum, auto
+
+# enum's:
+class Unidade(Enum):
+   BYTE = auto()
+   BIT = auto()
+...
+
+class Grandeza(Enum):
+   METRICO = auto()
+   BINARIO = auto()
+...
 
 # *** *** *** funções *** *** ***
-
-def lendo_arquivo(nome):
-   acumulador = 0
-   arq = open(nome, mode='rb')
-   for parte in arq:
-      acumulador += len(parte)
-      del parte #deleta da memória.
-   arq.close()
-   return tamanho(
-      acumulador,
-      acronomo = True,
-      unidade='byte',
-      sistema='binario'
-   )
-...
 
 def tamanho(valor, *, unidade, acronomo, sistema):
    '''
@@ -147,3 +144,96 @@ def tempo(t):
       return '%0.2f milênios' %(t / milenio)
    else: return str(t)
 ...
+
+def tamanho(valor, unidade, sistema, acronomo=True):
+   '''
+   Função que retorna um sufixo com a unidade
+   de informação traduzida do melhor modo possível
+   de acordo com a informação passada.
+   '''
+   if unidade == Unidade.BYTE and sistema == Grandeza.METRICO:
+      X = valor
+      sequencial = (
+         ('B','byte'), ('KB','kilobyte'),
+         ('MB','megabyte'),('GB','gigabyte'),
+         ('TB','terabyte'),('PB','petabyte'),
+         ('EB','exabyte'),('ZB','zettabyte'),
+         ('YB','yottabyte')
+      )
+      (x1,x2,dx),(y1,y2,dy) = (0,27,3), (3,30,3)
+      base = 10 #muda base
+   elif unidade == Unidade.BYTE and sistema == Grandeza.BINARIO:
+      X = valor
+      base = 2 #muda base
+      (x1, x2, dx), (y1,y2,dy) = (0,90,10),(10,100,10)
+      sequencial = (
+         ('Bi','byte'),('KiB','kilobyte'),
+         ('MiB','megabyte'), ('GiB','gigabyte'),
+         ('TiB','terabyte'),('PiB','pebibyte'),
+         ('EiB','exibyte'),('ZiB','zebibyte'),
+         ('YiB','yobibyte')
+      )
+   elif unidade == Unidade.BIT and sistema == Grandeza.METRICO:
+      X = 8 * valor
+      base = 10 #muda base
+      (x1,x2,dx),(y1,y2,dy) = (0,27,3), (3,30,3)
+      sequencial = (
+         ('Bit','bit'),('Kbit','kilobit'),
+         ('Mbit','megabit'),('Gbit','gigabit'),
+         ('Tbit','terabit'),('Pbit','petabit'),
+         ('Ebit','exabit'),('Zbit','zettabit'),
+         ('Ybit','yottabit')
+      )
+   elif unidade == Unidade.BIT and sistema == Grandeza.BINARIO:
+      X = 8 * valor
+      base = 2 #muda base
+      (x1,x2,dx),(y1,y2,dy) = (0,90,10),(10,100,10)
+      sequencial = (
+         ('Bit','bit'),('Kibit','kilobit'),
+         ('Mibit','megabit'),('Gibit','gigabit'),
+         ('Tibit','terabit'),('Pibit', 'pebibit'),
+         ('Eibit', 'exbibit'),('Zibit', 'zebibit'),
+         ('Yibit','yobibit')
+      )
+   ...
+
+   #dicionário  contendo todos intervalos de variação
+   #e seus respectivos múltiplos para deixar
+   #mais legível tal número.
+   ordem = { 
+      (a,b):U for(a,b,U) in zip( 
+         range(x1,x2,dx), 
+         range(y1,y2,dy), 
+         sequencial
+      ) 
+   }
+
+   #a - inicio de um valor; b - final do valor; definindo
+   #assim o intervalo. Percorrendo o dicionário sendo a
+   #chave uma tupla, com valor inicial e final.
+   for (a,b) in ordem:
+     #escolhe o melhor múltiplo para o valor.
+     multiplo = ordem[(a,b)][int(not acronomo)]
+     #forma uma string com o valor encolhido
+     #a uma escala legível.
+     string='{0:0.2f} {1}'.format(X/(base**a),multiplo)
+     #se estiver no intervalo existente, então
+     #retorna a string combinada com algumas
+     #customizações importantes.
+     if X >= base**a and X < base**b:
+         if X/(base**a) == 1: 
+            return string
+         else: 
+            return string+'\'s'
+     ...
+   else: 
+      return string
+   ...
+...
+
+__all__ = [
+   "Grandeza",
+   "Unidade",
+   "tamanho",
+   "tempo"
+]
