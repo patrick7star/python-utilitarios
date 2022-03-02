@@ -8,7 +8,7 @@ do nosso código.
 from sys import path
 # adicionando diretório com 'biblioteca'
 # para que módulos possam ser importados...
-path.append("../lib/")
+path.append("../src/")
 
 # o que será importado tudo:
 from tela import *
@@ -19,6 +19,9 @@ from arvore import *
 from aritimetica import *
 from barra_de_progresso import *
 from legivel import *
+# otimizações:
+import tela_i as TelaOptimizada
+import arvore_ii
 
 # removendo desnessários...
 del path
