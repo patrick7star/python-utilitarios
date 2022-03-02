@@ -18,6 +18,7 @@ class Grandeza(Enum):
 
 # *** *** *** funções *** *** ***
 
+#[código morto]
 def tamanho(valor, *, unidade, acronomo, sistema):
    '''
    Função que retorna um sufixo com a unidade
