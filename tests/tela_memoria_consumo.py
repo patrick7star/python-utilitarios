@@ -7,10 +7,13 @@ o antigo.
 Muito do código do "módulo tela" original
 será reutilizado nesta nova criação.
 """
-from biblioteca import Tela, Ponto, tamanho
+from biblioteca import Tela, Ponto, tamanho, Unidade, Grandeza
 from biblioteca import TelaOptimizada
 from sys import getsizeof
 from biblioteca import range_bidimensional, espiral
+
+# métrica padrão para impressão
+METRICA_PADRAO = (Unidade.BYTE, Grandeza.METRICO)
 
 tela_i = TelaOptimizada.Tela(10_000, 10_000,borda=True, grade=False)
 tela_ii = Tela(10_000, 10_000, borda=True,grade=False)
@@ -21,14 +24,8 @@ print(tela_ii)
 t1 = getsizeof(tela_i)
 t2 = getsizeof(tela_ii)
 assert t1 < t2
-print(
-   "tamanho do tela_i: %s"
-   % tamanho(t1, unidade="byte",acronomo=True,sistema="metrico")
-)
-print(
-   "tamanho do tela_ii: %s"
-   % tamanho(t2, unidade="byte",acronomo=True,sistema="metrico")
-)
+print("tamanho do tela_i: %s" % tamanho(t1, *METRICA_PADRAO))
+print("tamanho do tela_ii: %s" % tamanho(t2, *METRICA_PADRAO))
 
 coords = range_bidimensional((5,12), 4)
 
@@ -48,11 +45,6 @@ print(tela_ii)
 t1 = getsizeof(tela_i)
 t2 = getsizeof(tela_ii)
 assert t1 < t2
-print(
-   "tamanho do tela_i: %s"
-   % tamanho(t1, unidade="byte",acronomo=True,sistema="metrico")
-)
-print(
-   "tamanho do tela_ii: %s"
-   % tamanho(t2, unidade="byte",acronomo=True,sistema="metrico")
-)
+print("tamanho do tela_i: %s" % tamanho(t1, *METRICA_PADRAO))
+print("tamanho do tela_ii: %s" % tamanho(t2, *METRICA_PADRAO))
+
