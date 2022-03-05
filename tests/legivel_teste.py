@@ -73,7 +73,6 @@ print(recuo,tempo(832321)) # maior que um dia.
 print(recuo,tempo(15041932)) # possívelmente maior que um mês
 print(recuo,tempo(127123821))
 print(recuo,tempo(669988999))
-print(recuo,tempo(15798411928))
 print(recuo,tempo(30589812381))
 print(recuo,tempo(139581111116))
 
