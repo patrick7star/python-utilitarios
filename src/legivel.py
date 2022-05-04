@@ -163,17 +163,6 @@ def tamanho(valor, unidade, sistema, acronomo=True):
       )
       (x1,x2,dx),(y1,y2,dy) = (0,27,3), (3,30,3)
       base = 10 #muda base
-   elif unidade == Unidade.BYTE and sistema == Grandeza.BINARIO:
-      X = valor
-      base = 2 #muda base
-      (x1, x2, dx), (y1,y2,dy) = (0,90,10),(10,100,10)
-      sequencial = (
-         ('Bi','byte'),('KiB','kilobyte'),
-         ('MiB','megabyte'), ('GiB','gigabyte'),
-         ('TiB','terabyte'),('PiB','pebibyte'),
-         ('EiB','exibyte'),('ZiB','zebibyte'),
-         ('YiB','yobibyte')
-      )
    elif unidade == Unidade.BIT and sistema == Grandeza.METRICO:
       X = 8 * valor
       base = 10 #muda base
@@ -195,6 +184,18 @@ def tamanho(valor, unidade, sistema, acronomo=True):
          ('Tibit','terabit'),('Pibit', 'pebibit'),
          ('Eibit', 'exbibit'),('Zibit', 'zebibit'),
          ('Yibit','yobibit')
+      )
+   #elif unidade == Unidade.BYTE and sistema == Grandeza.BINARIO:
+   else:
+      X = valor
+      base = 2 #muda base
+      (x1, x2, dx), (y1,y2,dy) = (0,90,10),(10,100,10)
+      sequencial = (
+         ('Bi','byte'),('KiB','kilobyte'),
+         ('MiB','megabyte'), ('GiB','gigabyte'),
+         ('TiB','terabyte'),('PiB','pebibyte'),
+         ('EiB','exibyte'),('ZiB','zebibyte'),
+         ('YiB','yobibyte')
       )
    ...
 
