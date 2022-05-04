@@ -20,7 +20,7 @@ from aritimetica import *
 from barra_de_progresso import *
 from legivel import *
 # otimizações:
-import tela_i as TelaOptimizada
+import tela_i as tela_otimizada
 import arvore_ii
 
 # removendo desnessários...
