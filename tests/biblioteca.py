@@ -15,6 +15,7 @@ from tela import *
 from espiral import *
 from romanos import *
 from silhueta import *
+import numeros_por_extenso as NE
 from arvore import *
 from aritimetica import *
 from barra_de_progresso import *
