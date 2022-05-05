@@ -18,9 +18,7 @@ import silhueta
 # pelo menos até o momento.
 import tela_i as tela
 import arvore_ii as arvore
-
-# ainda não terminado.
-#import numeros_por_extenso
+import numeros_por_extenso
 
 # não usado muito, então dado como
 # descontinuado.
@@ -34,5 +32,5 @@ __all__ = [
    "legivel",
    "romanos",
    "silhueta",
-   "tela
+   "tela"
 ]

@@ -34,179 +34,362 @@ apenas as primeiras três casas decimais, as demais
 no número apenas são estás adicionadas ao um sufixo,
 como já dito.
 '''
+
 #o que pode, ou não importar.
-__all__ = {'escrevaPorExtenso'}
-#trasnforma a string numa com o comprimento
-#igual ao um múltiplo de três. Para isso, ela
-#adiciona zeros à esquerda dele.
-def preencheNum(Str):
-    #variável auxiliar para mexer o objeto.
-    s = Str
-    c = len(Str) #seu atual comprimento.
-    while c % 3 != 0:
-        s = s.zfill(c + 1)
-        c = len(s)
-    return s
+__all__ = {'escreva_por_extenso'}
 
-def separaClasses(num):
-    '''
-        Retorna um dicionário contendo o "número separado por classes",
-    de três em três algarismos. E o valor do dicionário é, uma potência
-    de dez que "eleva" a classe.
+tradutor = {
+   0:'', 1:'um', 2:'dois', 3:'três', 4:'quatro', 
+   5:'cinco', 6:'seis', 7:'sete', 8:'oito', 9:'nove',
+   10:'dez', 20:'vinte', 30:'trinta', 40:'quarenta', 
+   50:'cinquenta', 60:'sessenta', 70:'setenta', 
+   80:'oitenta', 90:'noventa',
+   100:'cento', 200:'duzentos', 300:'trezentos', 
+   400:'quatrocentos', 500:'quinhentos', 
+   600:'seiscentos', 700:'setecentos', 
+   800:'oitocentos', 900:'novecentos'
+}
 
-    51.892 - {51:1.000, 892:1}
-    9.302.711 - {9:1.000.000, 302:1.000, 711:1}
-    '''
-    #preenche os zeros necessários para que
-    #a quantia de dígitos no número sejá um
-    #múltiplo de três.
-    aux = preencheNum(num)
-    t = len(aux) #comprimento da "str" agora.
-    #string para cocatenar, e dicionário para
-    #armazenar tal string, e seu correspondente
-    #númerico.
-    classe, classes = '', {}
-    for (k, d) in enumerate(aux):
-        classe += d
-        #adiciona se o contador for múltiplo de três.
-        if (k+1) % 3 == 0:
-            #potência; qual múltiplo de três vamos
-            #elevar a base dez. O três,... para ser
-            #múltiplo de três, já a subtração, está
-            #na busca de qual ordem de "classe" tal
-            #tal pertence.
-            pot = 3 * (int(t/3) - int((k+1)/3))
-            classes[int(classe)] = 10 ** pot
-            classe = '' #limpando "str" para o próximo.
-    #o retorno é um dicionário representando a expansão
-    #de um número decimal, só que, pela a classe e não
-    #a ordem do número. Ou seja, seu respectivo peso(
-    #potência de dez[más, da classe, não do algarismo])
-    return classes
+PESOS = (
+   "mil", "milhões", "bilhões",
+   "trilhões", "quatrilhões",
+   "quintilhões", "sextilhões",
+   "septilhões", "octilhões",
+   "donilhões", "decilhões", "undecilhões",
+   "duodecilhões", "tredecilhões",
+   "quatordecilhões", "quindecilhões",
+   "sexdecilhões", "setedecilhões",
+   "octodecilhões","novedecilhões",
+   "vigesilhões"
+)
 
-def porExtenso1000(num):
-    '''
-        Retorna recebe um número e retorna uma "str"
-    com tal valor escrito por extenso.
-    '''
-    if num < 1000:
-        #têm todos "significados" quando os pesos forem passados.
-        tradutor = {0:'', 1:'um', 2:'dois', 3:'três', 4:'quatro', 5:'cinco',
-        6:'seis', 7:'sete', 8:'oito', 9:'nove',
+PESOS_UNITARIOS = (
+   "mil", "milhão", "bilhão",
+   "trilhão", "quatrilhão",
+   "quintilhão", "sextilhão",
+   "septilhão", "octilhão",
+   "donilhão", "decilhão", "undecilhão",
+   "duodecilhão", "tredecilhão",
+   "quatordecilhão", "quindecilhão",
+   "sexdecilhão", "setedecilhão",
+   "octodecilhão","novedecilhão",
+   "vigesilhão"
+)
 
-        11:'onze', 12:'doze', 13:'treze', 14:'quatorze', 15:'quinze',
-        16:'dezesseis', 17:'dezesete', 18:'dezoito', 19:'dezenove',
+# decompõe um número em algarismos, onde 
+# a parte mais a esquerda têm uma potência
+# maior que o mais a esquerda, mesmo como
+# é escrito a mão. 
+def decompoe(numero):
+   # pilha contendo algarismos.
+   pilha_algs = []
 
-        10:'dez', 20:'vinte', 30:'trinta', 40:'quarenta', 50:'cinquenta',
-        60:'sesenta', 70:'setenta', 80:'oitenta', 90:'noventa',
+   # empilhando algarismos ...
+   for alg in str(numero):
+      pilha_algs.append(int(alg))
 
-        100:'cento', 200:'duzentos', 300:'trezentos', 400:'quatrocentos',
-        500:'quinhentos', 600:'seiscentos', 700:'setecentos',
-        800:'oitocentos', 900:'novecentos'}
+   # faz sempre a quantia de algs. um 
+   # múltiplo de três.
+   qtd = len(pilha_algs)
+   if qtd % 3 == 1:
+      pilha_algs.insert(0, 0)
+      pilha_algs.insert(0, 0)
+   elif qtd % 3 == 2:
+      pilha_algs.insert(0, 0)
 
-        numStr = preencheNum(str(num))
-        ordens = tuple([int(alg) * 10**(len(numStr) - i - 1) for (i, alg) in enumerate(str(numStr))])
+   return pilha_algs
+...
 
-        #para uma legibilidade melhor, vamos nomear
-        #com seus respectivos nomes.
-        centenas, dezenas, unidades = ordens
-
-        #soma das unidades e dezena resultar em 11, 12, 13, ..., 19.
-        x = dezenas + unidades
-        if (x in tradutor) and (x >= 11 and x <=19):
-            if unidades != 0 and dezenas != 0 and centenas == 0:
-                return tradutor[dezenas + unidades]
-
-            else:
-                return tradutor[centenas] + ' e ' + tradutor[dezenas + unidades]
-
-        else:
-            if unidades == 0 and dezenas != 0 and centenas != 0:
-                return tradutor[centenas] + ' e ' + tradutor[dezenas]
-
-            elif unidades == 0 and dezenas == 0 and centenas != 0:
-                    if centenas == 100: return 'cem'
-                    return tradutor[centenas]
-
-            elif unidades != 0 and dezenas == 0 and centenas != 0:
-                return tradutor[centenas] + ' e ' + tradutor[unidades]
-
-            elif unidades != 0 and dezenas == 0 and centenas == 0:
-                return tradutor[unidades]
-
-            elif unidades == 0 and dezenas == 0 and centenas == 0:
-                return 'zero'
-
-            elif unidades != 0 and dezenas != 0 and centenas == 0:
-                return tradutor[dezenas] + ' e ' + tradutor[unidades]
-
-            elif unidades == 0 and dezenas != 0 and centenas == 0:
-                return tradutor[dezenas]
-
-            else:
-                return (tradutor[centenas] + ' e ' +
-                tradutor[dezenas] + ' e ' + tradutor[unidades])
-
-def escrevaPorExtenso(num):
+def zero_a_mil(algarismos):
    '''
-     Recebe um número tanto em forma de string como inteiro,
-   e retorna uma "str" com tal valor escrito por extenso.
+   Retorna recebe um número e retorna uma "str"
+   com tal valor escrito por extenso.
    '''
-   if type(num) == int: return escrevaPorExtenso(str(num))
+   if len(algarismos) != 3:
+      raise Exception("só aceita um número com três algarismos!")
 
-   #nomes das classes numéricas "mais abastadas" do
-   #que as usuais.
-   sufixos = {1:'', 1000:'mil', 10**6:'milhão',10**9:'bilhão',
-   10**12:'trilhão', 10**15:'quatrilhão', 10**18:'quintilhão',
-   10**21:'sextilhão', 10**24:'septilhão', 10**27:'octilhão',
-   10**30:'donilhão', 10**33:'decilhão', 10**36:'undecilhão',
-   10**39:'duodecilhão', 10**42:'tredecilhão',
-   10**45:'quatordecilhão', 10**48:'quindecilhão ',
-   10**51:'sexdecilhão', 10**54:'setedecilhão',
-   10**57:'octodecilhão',10**60:'novedecilhão',
-   10**63:'vigesilhão'}
-   numero = ''
-   #a chave aqui é o número, e a potência é uma potência
-   #de dez equivalente a sua classe.
-   for (chave, potencia) in separaClasses(num).items():
-     #Ele concatenará se, e somente se, e for "maior que mil",
-     #portanto na casa dos milhões.
-     if potencia in sufixos:
-         #caso as classe não seja um, então colocar
-         #o texto no plural.
-         if potencia >= 10**6 and int(chave) > 1:
-             numero += (porExtenso1000(chave) + ' '
-                         + sufixos[potencia][0:-2] + 'ões ')
+   # ordens da classe:
+   unidades = tradutor[algarismos[2]]
+   dezenas = tradutor[algarismos[1] * 10]
+   centenas = tradutor[algarismos[0] * 100]
+
+   # casos possíveis de escrita:
+   algs = algarismos
+   if algs[0] == 0 and algs[1] == 0 and algs[2] == 0:
+      return "zero"
+   elif algs[0] != 0 and algs[1] == 0 and algs[2] == 0:
+      # tipo de casos trabalhados neste bloco:
+      # 100, 200, 300, 400,... ,800, 900 
+      if algs[0] == 1:
+         return "cem"
+      else:
+         return centenas
+   elif algs[0] == 0 and algs[1] != 0 and algs[2] == 0:
+      # tipo de casos trabalhados neste bloco:
+      # 10, 20, 30, 40,... ,80, 90 
+      return dezenas
+   elif algs[0] == 0 and algs[1] == 0 and algs[2] != 0:
+      # tipo de casos trabalhados neste bloco:
+      # 1, 2, 3, 4,... 8, 9. 
+      return unidades
+   elif algs[0] == 0 and algs[1] != 0 and algs[2] != 0:
+      # tipo de casos trabalhados neste bloco:
+      # 85, 39, 24, 15 e etc.
+      return dezenas + " e " + unidades
+   elif algs[0] != 0 and algs[1] == 0 and algs[2] != 0:
+      # tipo de casos trabalhados neste bloco:
+      # 805, 309, 204, 105 e etc. 
+      return centenas + " e " + unidades
+   elif algs[0] != 0 and algs[1] != 0 and algs[2] == 0:
+      # tipo de casos trabalhados neste bloco:
+      # 850, 390, 240, 150 e etc. 
+      return centenas + " e " + dezenas
+   else:
+      # todos os demais, onde não há algarismos nulos
+      # serão tratados aqui. Por exemplo: 312, 582,
+      # 958, 642, 231, 253 e etc...
+      return centenas + " e " + dezenas + " e " + unidades
+   ...
+...
+
+# verifica por causa do algoritmo de construção
+# da escrita por extenso, se a última classe 
+# é uma ou mais centenas "certas", o que quero
+# dizer é: tanto suas dezenas com unidades de tal
+# classe estão zeradas, só a cetena que conta.
+def centenas_valida(numero):
+   # obtendo algarismos do número.
+   algs = decompoe(numero);
+   # total de algarismos para indexer direito a array.
+   q = len(algs)
+   # obten as ordens da última classe.
+   unidade = algs[q-1];
+   dezena = algs[q-2];
+   centena = algs[q-3];
+
+   # verificando se só a centena tem alguma coisa ...
+   if centena != 0 and dezena == 0 and unidade == 0:
+      return True
+   elif centena == 0 and (dezena != 0 or unidade != 0):
+      return True
+   else:
+      return False
+...
+
+# peguando casos especiais e reescrevendo string.
+def consertando_casa_dos_dez(ne):
+   # onze.
+   if "dez e um" in ne:
+      ne = ne.replace("dez e um", "onze")
+   # doze.
+   if "dez e dois" in ne:
+      ne = ne.replace("dez e dois", "doze")
+   # treze.
+   if "dez e três" in ne:
+      ne = ne.replace("dez e três", "treze")
+   # quartoze.
+   if "dez e quatro" in ne:
+      ne = ne.replace("dez e quatro", "quartoze")
+   # quinze.
+   if "dez e cinco" in ne:
+      ne = ne.replace("dez e cinco", "quinze")
+   # dezesseis.
+   if "dez e seis" in ne:
+      ne = ne.replace("dez e seis", "dezesseis")
+   # dezesete.
+   if "dez e sete" in ne:
+      ne = ne.replace("dez e sete", "dezesete")
+   # dezoito.
+   if "dez e oito" in ne:
+      ne = ne.replace("dez e oito", "dezoito")
+   # dezenove.
+   if "dez e nove" in ne:
+      ne = ne.replace("dez e nove", "dezenove")
+
+   # re-retornando a string passada, talvez consertada.
+   return ne;
+...
+
+def escreva_por_extenso(numero):
+   """
+   retorna uma string com o valor escrito
+   por extenso. O maior valor permitido é um
+   inteiro de 64-bits, porém não é o limite
+   total que está implementado.
+   Então o código retorna um `Err` com limites
+   possíveis ainda não implementados.
+   """
+   # no caso de um valor de 0 à 1000, um função 
+   # cuida perfeitamente disso, precisando apenas 
+   # que aplique uma correção, como os demais casos. 
+   if numero < 1000:
+      numero_str = zero_a_mil(decompoe(numero))
+      pos_conserto = consertando_casa_dos_dez(numero_str)
+      return pos_conserto
+   elif numero == 1_000:
+      # tratando de caso muito específico ...
+      return "mil"
+   else:
+      escrita = ""
+      algarismos = decompoe(numero)
+      qtd = len(algarismos)
+
+      pesos = [ ' ' + s + ' ' for s in PESOS]
+      pesos_unitario = [ ' ' + s + ' ' for s in PESOS_UNITARIOS]
+
+      if qtd >= 6:
+         # total de ciclos, tirando o das centenas.
+         ciclos = (qtd // 3) - 1
+         # ínicio e fim do intervalo.
+         (i, f) = (0, 3)
+         # total de pesos inicialmente, para indexar o último.
+         indice = (qtd - 6 + 3)//3 -1
+
+         # realizando concatenação "ciclo vezes".
+         while ciclos > 0:
+            fatia = algarismos[i:f]
+            forma_numero = zero_a_mil(fatia)
+            no_plural = (
+               forma_numero != "zero" and
+               forma_numero != "um"
+            )
+            no_singular = (
+               forma_numero != "zero" and
+               forma_numero == "um"
+            )
+            if no_plural :
+               escrita += forma_numero
+               # tira de ambos, pois o próximo pode ser do outro.
+               escrita += pesos.pop(indice)
+               # (DESABILITADO)drop(pesos_unitario.remove(indice));
+               # nova quantia de pesos atualizada.
+               if indice > 0 :
+                  indice -= 1
+            elif no_singular :
+               escrita += forma_numero
+               # tira de ambos, pois o próximo pode ser do outro.
+               escrita += pesos_unitario.pop(indice)
+               #[DESABILITADO]drop(pesos.remove(indice))
+               # nova quantia de pesos atualizada.
+               if indice > 0:
+                  indice -= 1
+            ...
+            # avançando no intervalo ...
+            i += 3; f += 3;
+            # cotabilizando ciclos realizados.
+            ciclos -= 1
+         ...
+         # adicionando centenas separadamente ...
+         fatia = algarismos[i:f]
+         # debugando caso especial ...
+         if __debug__:
+            if numero == 1052:
+               print("fatia:", fatia)
+               print("número por extenso:", zero_a_mil(fatia))
+            ...
+         ...
+         forma_numero = zero_a_mil(fatia)
+         if centenas_valida(numero):
+            escrita += "e "
+            escrita += forma_numero
+         elif forma_numero != "zero":
+            escrita += forma_numero
+      else:
+         # se for uma ordem ainda não trabalhada ...
+         raise Exception("quatrilhão, quintilhão e etc; não implementada!")
+      ...
+
+      # concertando dezenas que por meio automático foram
+      # traduzidas como por exemplo:
+      #    'dez e cinco' ao invés de 'quize'
+      #    'trezentos e dez e um' ao invés de 'trezentos
+      #    e onze' 
+      escrita = consertando_casa_dos_dez(escrita)
+      def termina_com_espaco_em_branco(s):
+         caracteres = tuple(s)
+         indice = len(caracteres) - 1
+         if caracteres[indice].isspace():
+            return True
          else:
-             #do caso contrário, formata-lô deste modo.
-             numero += (porExtenso1000(chave) + ' '
-                         + sufixos[potencia] + ' ')
-   # pequenos ajustes ajustes
-   if int(num) != 0 and numero.find('zero') != -1: 
-      return numero.replace('zero', '')
-   else: return numero
+            return False
+      ...
+      # retirar espaço em branco no final, se houver algum.
+      if termina_com_espaco_em_branco(escrita):
+         escrita = escrita.rstrip()
+      # nova triagem de reparos:
+      return conserta_unidade_de_milhar(escrita, numero)
+   ...
+...
+
+# conserta um caso especial de número por extenso.
+# O caso em que é "um mil", porém não é escrito 
+# desta maneira por muitas vezes.
+def conserta_unidade_de_milhar(ne_str, numero):
+   if ne_str.startswith("um mil") and numero < 10**6:
+      return ne_str.replace("um mil", "mil")
+   else:
+      # se não for o caso, apenas retorna o que 
+      # foi passado.
+      return ne_str
+   ...
+...
 
 # *** *** *** EXECUÇÃO *** *** ***
 if __name__ == '__main__':
-
    # buscando pequenos erros na "semântica"...
-   print(105,escrevaPorExtenso(105), sep=' - ') # cento e cinco.
+   extenso = escreva_por_extenso(105)
+   print(105, extenso, sep=' - ') # cento e cinco.
+   assert "cento e cinco" == extenso
 
-   print(1352,escrevaPorExtenso(1352), sep=' - ') # mil trezentos e ciquenta e dois
-   print(1052,escrevaPorExtenso(1052),sep=' - ') # mil e cinquenta.
+   extenso = escreva_por_extenso(7352)
+   print(7352, extenso, sep=' - ') 
+   assert "sete mil trezentos e cinquenta e dois" == extenso
 
-   print(8012012,escrevaPorExtenso(8012012), sep = ' - ') # oitio milhões doze mil e doze
-   print(8012812,escrevaPorExtenso(8012812), sep = ' - ') # oitio milhões doze mil e oitocentos e doze
-   print(8412012, escrevaPorExtenso(8412012), sep=' - ') # oito milhões quatrocentos e doze mil e doze
+   extenso = escreva_por_extenso(1052)
+   print(1052, extenso, sep=' - ')
+   assert "mil e cinquenta e dois" == extenso
 
-   print(1000, escrevaPorExtenso(1000), sep= ' - ') # mil
-   print(10**6, escrevaPorExtenso(10**6), sep=' - ') # um milhão
-   print(10**9, escrevaPorExtenso(10**9), sep = ' - ') # um bilhão
-   print(10**12, escrevaPorExtenso(10**12), sep = ' - ') # um trilhão
-   print(10 ** 15, escrevaPorExtenso(10**15), sep = ' - ') # um quatrilhão
-   print(10**18, escrevaPorExtenso(10**18), sep = ' - ') # um bilhão
-   print(10**21, escrevaPorExtenso(10**21), sep = ' - ') # um trilhão
-   print(10 ** 24, escrevaPorExtenso(10** 24), sep = ' - ') # um quatrilhão
+   # pegando algumas sutilezas ...
+   extenso = escreva_por_extenso(8_012_012)
+   print(8012012, extenso, sep = ' - ') 
+   assert "oito milhões doze mil e doze" == extenso
 
-   print(10 ** 9 + 1050, escrevaPorExtenso(10**9 + 1050), sep=' - ')
-   print(189324712911322, escrevaPorExtenso(189324712911322), sep=' - ')
+   numero = 8_012_812
+   extenso = escreva_por_extenso(numero)
+   print(numero, extenso, sep = ' - ') 
+   assert "oito milhões doze mil oitocentos e doze" == extenso
+
+   numero = 8_412_012
+   extenso = escreva_por_extenso(numero)
+   print(numero, extenso, sep = ' - ') 
+   assert "oito milhões quatrocentos e doze mil e doze" == extenso
+
+   # teste com potências de 10, as implementadas...
+   numero = 10**3
+   extenso = escreva_por_extenso(numero)
+   print(numero, extenso, sep = ' - ') 
+   assert "mil" == extenso
+
+   numero = 10**6
+   extenso = escreva_por_extenso(numero)
+   print(numero, extenso, sep = ' - ') 
+   assert "um milhão" == extenso
+
+   numero = 10**9
+   extenso = escreva_por_extenso(numero)
+   print(numero, extenso, sep = ' - ') 
+   assert "um bilhão" == extenso
+
+   numero = 10**12
+   extenso = escreva_por_extenso(numero)
+   print(numero, extenso, sep = ' - ') 
+   assert "um trilhão" == extenso
+
+   print(10 ** 15, escreva_por_extenso(10**15), sep = ' - ') # um quatrilhão
+   print(10**18, escreva_por_extenso(10**18), sep = ' - ') # um bilhão
+   print(10**21, escreva_por_extenso(10**21), sep = ' - ') # um trilhão
+   print(10 ** 24, escreva_por_extenso(10** 24), sep = ' - ') # um quatrilhão
+
+   print(10 ** 9 + 1050, escreva_por_extenso(10**9 + 1050), sep=' - ')
+   print(189324712911322, escreva_por_extenso(189324712911322), sep=' - ')
+...
