@@ -10,38 +10,9 @@ from biblioteca import *
 from time import sleep
 from os import get_terminal_size
 
-# separador de testes:
-def separador():
-   # obtendo largura da tela.
-   largura = get_terminal_size().columns
-   qtd = largura // 4
-   # espaço vertical de uma linha.
-   print("")
-   for i in range(qtd):
-      print("~~~",end=" ")
-   # espaço vertical de duas linhas.
-   print("\n\n")
-...
-
-# executa teste em tais funções.
-def executa_tal_funcao(funcao):
-   # reparando nome da função.
-   novo_nome = (
-      funcao
-      .__name__
-      .replace("testa", "")
-      .strip("_")
-   )
-   # nova mensagem sobre o que está acontecendo...
-   print("'{}' testando ...\n".format(novo_nome))
-   # chamando tal função...
-   funcao()
-   # delimitando separador.
-   separador()
-...
-
 # total a cumprir padronizado.
 TOTAL = 500_000
+
 
 def teste_progresso():
    (total, inicial) = TOTAL, 102
@@ -157,9 +128,11 @@ def testa_ProgressoTemporal_I():
 ...
 
 # executando testes ...
-executa_tal_funcao(teste_progresso)
-executa_tal_funcao(testa_progresso_rotulo)
-executa_tal_funcao(testa_progresso_redimensionavel)
-executa_tal_funcao(testa_ProgressoPercentual)
-executa_tal_funcao(testa_ProgressoTemporal)
-executa_tal_funcao(testa_ProgressoTemporal_I)
+executa_teste(
+   teste_progresso,
+   testa_progresso_rotulo,
+   testa_progresso_redimensionavel,
+   testa_ProgressoPercentual,
+   testa_ProgressoTemporal,
+   testa_ProgressoTemporal_I
+)

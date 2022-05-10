@@ -1,38 +1,9 @@
 # biblioteca padrão do terminal.
 from os import get_terminal_size
 # importando 'lib' especifica a testar.
-from biblioteca import tela_otimizada
+from biblioteca import tela_otimizada, executa_teste
 Ponto = tela_otimizada.Ponto
 
-# separador de testes:
-def separador():
-   # obtendo largura da tela.
-   largura = get_terminal_size().columns
-   qtd = largura // 4
-   # espaço vertical de uma linha.
-   print("")
-   for i in range(qtd):
-      print("~~~",end=" ")
-   # espaço vertical de duas linhas.
-   print("\n\n")
-...
-
-# executa teste em tais funções.
-def executa_tal_funcao(funcao):
-   # reparando nome da função.
-   novo_nome = (
-      funcao
-      .__name__
-      .replace("testa", "")
-      .strip("_")
-   )
-   # nova mensagem sobre o que está acontecendo...
-   print("'{}' testando ...\n".format(novo_nome))
-   # chamando tal função...
-   funcao()
-   # delimitando separador.
-   separador()
-...
 
 # primeira tela, sem borda vísivel e
 # contendo grade.
@@ -122,7 +93,9 @@ def testa_metodo_enquadra():
 ...
 
 # --- ~~~ --- ~~~ executando testes --- ~~~ --- ~~~ 
-executa_tal_funcao(testa_tela_com_grade_e_sem_borda)
-executa_tal_funcao(testa_metodo_risca)
-executa_tal_funcao(testa_metodo_circula)
-executa_tal_funcao(testa_metodo_enquadra)
+executa_teste(
+   testa_tela_com_grade_e_sem_borda,
+   testa_metodo_risca,
+   testa_metodo_circula,
+   testa_metodo_enquadra
+)

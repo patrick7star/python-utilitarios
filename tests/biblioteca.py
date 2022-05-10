@@ -20,6 +20,7 @@ from arvore import *
 from aritimetica import *
 from barra_de_progresso import *
 from legivel import *
+from testes import *
 # otimizações:
 import tela_i as tela_otimizada
 import arvore_ii
