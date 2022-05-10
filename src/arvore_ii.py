@@ -322,6 +322,8 @@ __all__ = ["GalhoTipo","arvore"]
 
 # teste protótipos:
 if __name__ == "__main__":
+   # módulos próprios:
+   import testes
    def testa_Matriz():
       caminho = ".."
       trilha_esboco = esboco(caminho)
@@ -367,7 +369,9 @@ if __name__ == "__main__":
    ...
 
    # rodando testes ...
-   #testa_Matriz()
-   #testa_conserta_galhos()
-   testa_arvore()
+   testes.executa_teste(
+      testa_Matriz,
+      testa_conserta_galhos,
+      testa_arvore
+   )
 ...

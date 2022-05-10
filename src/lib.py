@@ -19,6 +19,7 @@ import silhueta
 import tela_i as tela
 import arvore_ii as arvore
 import numeros_por_extenso
+import testes
 
 # não usado muito, então dado como
 # descontinuado.
