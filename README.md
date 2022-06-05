@@ -1,4 +1,4 @@
-# biblioteca_utilitarios_python
+# Útilitarios em Python
 É uma biblioteca com funções básicas em Python que escrevi há muito tempo, pórem são reutilizados, bastante, em vários dos meus códigos.
 Entre tudo está:
     . Conversões de números no sistema decimal posicional e números romanos.
