@@ -378,7 +378,10 @@ def alterna_galho(glh):
 ...
 
 # o que pode ser importado.
-__all__ = ["GalhoTipo","arvore", "alterna_galho"]
+__all__ = [
+   "GalhoTipo", "arvore", 
+   "alterna_galho", "matriciar_string"
+]
 
 
 # teste protótipos:

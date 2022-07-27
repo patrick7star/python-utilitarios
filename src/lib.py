@@ -13,13 +13,13 @@ import barra_de_progresso
 import espiral
 import legivel
 import romanos
-import silhueta
 # sendo renomeada com a versão otimizada,
 # pelo menos até o momento.
 import tela_i as tela
 import arvore_ii as arvore
 import numeros_por_extenso
 import testes
+import impressao
 
 # não usado muito, então dado como
 # descontinuado.
@@ -32,6 +32,6 @@ __all__ = [
    "espiral",
    "legivel",
    "romanos",
-   "silhueta",
-   "tela"
+   "tela",
+   "impressao"
 ]
