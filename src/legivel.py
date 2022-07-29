@@ -112,81 +112,49 @@ def tamanho(valor, *, unidade, acronomo, sistema):
    else: return string
 ...
 
-def tempo_auxiliarI(t, arredonda=False, acronomo=False):
-   '''
-   Representar o tempo de forma legível,
-   "legendando" o resultado com os acronimos de
-   segundos, minutos e horas e etc...'''
-
+# Representar o tempo de forma legível,
+# onde converte todos valores passados na 
+# ordem de segundos para  minutos, horas
+# décadas, meses, milisegundos, nanosegundos
+# e etc...
+def converte(t):
    # múltiplos e sub-múltiplos:
    if t >= picoseg and t < nanoseg:
-      if arredonda:
-         return '%i picosegundos' % (int(t * 10**12))
-      else:
-         return '%0.2f picosegundos' % (t * 10**12)
+      grandeza = "picosegundos"
+      return '%0.2f %s' % (t * 10**12, grandeza)
    elif t >= nanoseg and t < microseg:
-      if arredonda:
-         return '%i nanosegundos' % (int(t * 10**9))
-      else:
-         return '%0.2f nanosegundos' % (t * 10**9)
+      grandeza = 'nanosegundos'
+      return '%0.2f %s' % (t * 10**9, grandeza)
    elif t >= microseg and t < miliseg:
-      if arredonda:
-         return '%i microsegundos' % (int(t * 10**6))
-      else:
-         return '%0.2f microsegundos' % (t * 10**6)
+      grandeza = 'microsegundos'
+      return '%0.2f %s' % (t * 10**6, grandeza)
    elif t >= miliseg and t < 1:
-      if arredonda:
-         return '%i milisegundos' % (int(t * 10**3))
-      else:
-         return '%0.2f milisegundos' % (t * 10**3)
+      grandeza = 'milisegundos'
+      return '%0.2f %s' % (t * 1000, grandeza)
    elif t >= 1 and t < 60:
-      if acronomo:
-         grandeza = 'seg'
-      else:
-         grandeza = 'segundos'
-      if arredonda:
-         return '%i %s' % (int(t), grandeza)
+      grandeza = 'segundos'
       return '%0.2f %s' % (t, grandeza)
    elif t > 60 and t < 3600:
-      if arredonda:
-         return '%i minutos' % (t // minuto)
-      else:
-         return '%0.2f minutos' % (t / minuto)
+      grandeza = 'minutos'
+      return '%0.2f %s' % (t / minuto, grandeza)
    elif t >= hora and t < dia:
-      if arredonda:
-         return '%i horas' % (t // hora)
-      else:
-         return '%0.2f horas' % (t / hora)
+      grandeza = 'horas'
+      return '%0.2f %s' % (t / hora, grandeza)
    elif t >= dia and t < mes:
-      if arredonda:
-         return '%i dias'%(t // dia)
-      else:
-         return '%0.2f dias'%(t / dia)
+      return '%0.2f dias'%(t / dia)
    elif t >= mes and t < ano:
-      if arredonda:
-         return '%i meses' % (t // mes)
-      else:
-         return '%0.2f meses' % (t / mes)
+      return '%0.2f meses' % (t / mes)
    elif t >= ano and t < decada:
-      if arredonda:
-         return '%i anos' % (t // ano)
-      else:
-         return '%0.2f anos' % (t / ano)
+      return '%0.2f anos' % (t / ano)
    elif t >= decada and t < seculo:
-      if arredonda:
-         return '%i décadas' % (t // decada)
-      else:
-         return '%0.2f décadas' % (t / decada)
+      grandeza = 'décadas'
+      return '%0.2f %s' % (t / decada, grandeza)
    elif t >= seculo and t < milenio:
-      if arredonda:
-         return '%i séculos' % (t // seculo)
-      else:
-         return '%0.2f séculos' % (t / seculo)
+      grandeza = 'séculos'
+      return '%0.2f %s' % (t / seculo, grandeza)
    elif t >= milenio and t < 10 * milenio:
-      if arredonda:
-         return '%i milênios' %(t // milenio)
-      else:
-         return '%0.2f milênios' %(t / milenio)
+      grandeza = 'milênios'
+      return '%0.2f %s' % (t / milenio, grandeza)
    else:
       raise Exception("não implementado para tal tamanho!")
 ...
@@ -197,33 +165,19 @@ def tempo(segundos, arredonda=False, acronomo=False):
    original é reescrita
    """
    # fazendo a tradução normal.
-   tempo_str = tempo_auxiliarI(
-      segundos,
-      arredonda = arredonda,
-      acronomo = acronomo
-   )
-   # decompondo em partes.
-   partes = decompoe(tempo_str)
+   tempo_str = converte(segundos)
+   # deixa no singular se possível.
+   tempo_str = transforma_no_singular(tempo_str)
 
-   # verificando se é o caso que estamos 
-   # querendo consertar.
-   e_caso_procurado = (
-      partes['inteiro'] == 1 and
-      partes['fracao'] == 0.0
-   )
-   if e_caso_procurado:
-      # transforma no valor novamente ...
-      valor = partes['inteiro'] + partes['fracao']
-      # remove o plural.
-      tamanho = len(partes['peso'])
-      peso = partes['peso'][0:tamanho-1]
-      # retornando o valor dirigido no singular.
-      return ( "{} {}" .format(valor, peso))
+   if acronomo and (not arredonda):
+      return aplica_acronomo(tempo_str, False)
+   elif (not acronomo) and arredonda:
+      return arredonda_tempostr(tempo_str)
+   elif  acronomo and arredonda:
+      arredondado = arredonda_tempostr(tempo_str)
+      return aplica_acronomo(arredondado, True)
    else:
-      # neste caso, apenas retorna o original
-      # obtido.
       return tempo_str
-   ...
 ...
 
 def tamanho(valor, unidade, sistema, acronomo=True):
@@ -359,6 +313,7 @@ def tempo_detalhado(t):
    )
 ...
 
+# decompõe em partes a "string de tempo".
 def decompoe(tempo_str):
    if __debug__:
       # caractére por caractére da string.
@@ -403,6 +358,90 @@ def decompoe(tempo_str):
    }
 ...
 
+# pega uma 'conversão' e arredonda sua parte inteira
+def arredonda_tempostr(tempo_str):
+   partes = decompoe(tempo_str)
+   inteiro = partes['inteiro']
+   fracao = partes['fracao']
+   peso = partes['peso']
+   
+   if fracao > 0.5:
+      inteiro += 1
+
+   return "{} {}".format(inteiro, peso)
+...
+
+# pega uma string já em forma legível 
+# e encurta seu acrônomo.
+def aplica_acronomo(tempo_str, arredonda):
+   partes = decompoe(tempo_str)
+   (i, f, peso) = (
+      partes['inteiro'],
+      partes['fracao'],
+      partes['peso']
+   )
+   encostado = False
+
+   if "picosegundo" in peso:
+      peso = "ps"
+      encostado = True
+   elif 'nanosegundo' in peso:
+      peso = 'ns'
+      encostado = True
+   elif "microsegundo" in peso:
+      peso = "μs"
+      encostado = True
+   elif "milisegundo" in peso:
+      peso = "ms"
+      encostado = True
+   elif "segundo" in peso:
+      peso = "seg"
+   elif "minuto" in peso:
+      peso = "min"
+   elif "hora" in peso:
+      peso = "h"
+      encostado = True
+   elif "década" in peso:
+      peso = 'dec'
+   elif "milênio" in peso:
+      peso = 'mil'
+   ...
+
+   valor = i + f
+   espaco = ' '
+   if encostado:
+      espaco = ''
+   if arredonda and f == 0.0:
+      return "%i%s%s" % (int(valor), espaco, peso)
+   else:
+      return "%0.2f%s%s" % (valor, espaco, peso)
+...
+
+# transforma 'tempo_str' na forma
+# singular, se este for o caso.
+def transforma_no_singular(tempo_str):
+   # verificando se é o caso que estamos 
+   # querendo consertar.
+   partes = decompoe(tempo_str)
+   e_caso_procurado = (
+      partes['inteiro'] == 1 and
+      partes['fracao'] == 0.0
+   )
+
+   if e_caso_procurado:
+      # transforma no valor novamente ...
+      valor = partes['inteiro'] + partes['fracao']
+      # remove o plural.
+      tamanho = len(partes['peso'])
+      peso = partes['peso'][0:tamanho-1]
+      # retornando o valor dirigido no singular.
+      return "{} {}" .format(valor, peso)
+   else:
+      # não é o caso, apenas devolve dado.
+      return tempo_str
+   ...
+...
+
 
 __all__ = [
    "Grandeza",
@@ -414,6 +453,7 @@ __all__ = [
 # testes unitários:
 if __name__ == "__main__":
    from testes import executa_teste 
+   from random import randint
 
    def testa_tempo_detalhado():
       # valor e peso filtrado:
@@ -456,9 +496,59 @@ if __name__ == "__main__":
       print(tempo(3_631, arredonda=True))
    ...
 
+   def testa_arredonda_tempostr():
+      exemplos = [
+         "15.3 horas", "3.7 min", "18 segundos",
+         "57.8 dias", "7.8 meses", "14.2 minutos",
+         "6.45 horas"
+      ]
+      for ts in exemplos:
+         print(ts, arredonda_tempostr(ts), sep=" ==> ")
+   ...
+
+   def teste_de_tempo_com_acronomos():
+      amostras = [
+         31_899, 192, 1_938, 419_203,
+         41_283, 3_912_822, 47,
+         580_098_523, 92_378_223,
+         1_101_283_283, 5_823, 223/1000, 
+         3/10**6, 28/10**9, 84/10**12
+      ]
+      for t in amostras:
+         normal = tempo(t)
+         transforma = tempo(t, acronomo = True) 
+         print("{} ==> {}".format(normal, transforma))
+      ...
+   ...
+
+   def teste_de_tempo_acronomos_e_arredondamentos():
+      amostras = [
+         31_899, 192, 1_938, 419_203,
+         41_283, 3_912_822, 47,
+         580_098_523, 92_378_223,
+         1_101_283_283, 5_823, 223/1000, 
+         3/10**6, 28/10**9, 84/10**12
+      ]
+      for t in amostras:
+         randomico = bool(randint(0, 1))
+         normal = tempo(t)
+         arredondado_sem_acronomo = tempo(t, arredonda=randomico)
+         encurtado = tempo(t, arredonda=randomico,acronomo=True) 
+         print(
+            normal, 
+            arredondado_sem_acronomo, 
+            encurtado, 
+            sep = " ==> "
+         )
+      ...
+   ...
+
    # executa tais funções ...
+   #executa_teste(testa_tempo_detalhado)
    executa_teste(
-      testa_tempo_detalhado,
-      testa_casos_plurais_e_singulares
+      testa_casos_plurais_e_singulares,
+      testa_arredonda_tempostr,
+      teste_de_tempo_com_acronomos,
+      teste_de_tempo_acronomos_e_arredondamentos
    )
 ...

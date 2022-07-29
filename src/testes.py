@@ -8,8 +8,8 @@
 from os import get_terminal_size
 
 
-# separador de testes:
 def separador():
+   "separador de testes"
    # obtendo largura da tela.
    largura = get_terminal_size().columns
    qtd = largura // 4
@@ -21,12 +21,16 @@ def separador():
    print("\n\n")
 ...
 
-# executa teste em tais funções.
 def executa_tal_funcao(funcao):
+   "executa teste em tais funções."
    # reparando nome da função.
    nome_funcao = funcao.__name__
    # casos possíveis das funções trabalhadas.
-   casos_possiveis = ("testa", "teste_da", "teste_de")
+   casos_possiveis = (
+      "testa", "teste_da", "teste_de", 
+      "testa_funcao", "testa_metodo", 
+      "testa_procedimento"
+   )
    novo_nome = nome_funcao
 
    # troca apenas caso específico que caiu.
