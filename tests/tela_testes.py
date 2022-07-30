@@ -92,10 +92,89 @@ def testa_metodo_enquadra():
    print(t)
 ...
 
+# testando circunscrição em todos lados e cantos.
+def testa_metodo_defazer_circulacoes():
+   t = tela_otimizada.Tela(None, None, borda=True, grade=False)
+   compr = 7
+   (P, Q) = Ponto(0, 0), Ponto(compr, compr)
+   t.circula(P, Q)
+
+   (P, Q) = Ponto(t.linhas-compr, 0), Ponto(t.linhas, compr)
+   t.circula(P, Q)
+
+   (P, Q) = (
+      Ponto(0, t.colunas-compr),
+      Ponto(compr, t.colunas)
+   )
+   t.circula(P, Q)
+
+   (P, Q) = (
+      Ponto(t.linhas-compr, t.colunas-compr),
+      Ponto(t.linhas, t.colunas)
+   )
+   t.circula(P, Q)
+
+   (P, Q) = (
+      Ponto(0, int(t.colunas/2)-compr),
+      Ponto(compr, int(t.colunas/2))
+   )
+   t.circula(P, Q)
+
+   (P, Q) = (
+      Ponto(t.linhas-compr, int(t.colunas/2)-compr),
+      Ponto(t.linhas, int(t.colunas/2))
+   )
+   t.circula(P, Q)
+
+   (P, Q) = Ponto(compr+3, 0), Ponto(2*compr, 17)
+   t.circula(P, Q)
+
+   (P, Q) = (
+      Ponto(int(t.linhas/2), t.colunas-17),
+      Ponto(int(t.linhas/2)+compr, t.colunas)
+   )
+   t.circula(P, Q)
+
+   # imprimindo...
+   print(t)
+   t.desfazer()
+   print(t)
+   t.desfazer()
+   print(t)
+   t.desfazer()
+   print(t)
+   t.desfazer()
+   print(t)
+   t.desfazer()
+   t.desfazer()
+   t.desfazer()
+   t.desfazer()
+   print(t)
+   
+   # agora com circulo completo.
+   (A, B) = (
+      Ponto(t.linhas//2 - 7, 20),
+      Ponto(t.linhas//2, 40)
+   )
+   t.circula(A, B)
+   print(t)
+   t.desfazer()
+   print(t)
+   try:
+      t.desfazer()
+      print(t)
+   except:
+      print("o método 'Tela.desfazer' não pode ser mais usado.")
+   ...
+...
+
+# testa métodos 'desfazer' e 'refazer'.
+
 # --- ~~~ --- ~~~ executando testes --- ~~~ --- ~~~ 
 executa_teste(
    testa_tela_com_grade_e_sem_borda,
    testa_metodo_risca,
    testa_metodo_circula,
-   testa_metodo_enquadra
+   testa_metodo_enquadra,
+   testa_metodo_defazer_circulacoes
 )
