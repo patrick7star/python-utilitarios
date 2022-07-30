@@ -10,6 +10,7 @@ from arvore import matriciar_string
 from copy import deepcopy
 from shutil import get_terminal_size
 import array as Array
+from sys import platform
 
 
 def listagem(strings):
@@ -24,7 +25,11 @@ def listagem(strings):
    acumulado = 0
    for entrada in strings:
       comprimento = len(entrada)
-      diferenca = abs(maior-comprimento)
+      # consertando para o Windows PowerShell
+      if platform == "win32":
+         diferenca = abs(maior-comprimento-1)
+      else:
+         diferenca = abs(maior-comprimento)
       espaco = " " * diferenca
       aux = entrada + espaco
      
