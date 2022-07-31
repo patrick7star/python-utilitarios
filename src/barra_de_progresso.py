@@ -4,141 +4,39 @@ o quanto foi feito da tarefa, dado os valores:
 a ser atingindo, e o quanto está no momento.
 '''
 #bibliotecas:
-import os, sys, decimal, threading
+import threading
 from time import sleep, time
+from os import get_terminal_size
 # meus módulos:
-import legivel
-
+from legivel import tamanho
 
 # dados:
-texto_molde = '{0:>{espaco}} de {1}: [{2}]{3:>5.1f}%'
-texto_molde_i = '{0}/{1}: [{2}]{3:>5.1f}%'
+TEXTO_MOLDE = "{0:>{espaco}} de {1}: [{2}]{3:>5.1f}%"
+TEXTO_MOLDE_I = "{0}/{1}: [{2}]{3:>5.1f}%"
+VAZIO = '.'
 
 # minhas próprias classe-exeções:
-class PorcentagemError(ValueError): pass
+class PorcentagemError(ValueError): 
+   def __str__(self):
+      return "tem que ser um valor(inclusivo) entre 0 e 1"
+...
 
-class FimDoProgressoError(ValueError):
-   def __init__(self, progresso):
-      # armazena a barra de progresso cheia.
-      self.progresso = progresso
+class FimDoProgressoError(OverflowError): pass
+
 
 class NaoCabeNaTelaError(Exception):
    def __init__(self, largura):
       self.largura = largura
    def __str__(self):
-      larguraTERM = int(os.get_terminal_size().columns)
+      larguraTERM = int(get_terminal_size().columns)
       X = abs(self.largura - larguraTERM)
-      return ("a barra excede a tela, por favor redimensione-a"+
-            " em %i caractéres para que possa"%(X)+
-            " executar novamente sem distorções.")
-
-
-# Função auxiliar na criação da barra de progresso.
-# Ela cria o progresso em sí.
-def constroi_barra(percentagem, simbolo, capacidade):
-    # levanta uma exceção em caso de uma porcentagem exagerada.
-    if percentagem > 1:
-      raise PorcentagemError(percentagem)
-    # símbolo que expressa "espaço vázio".
-    vazio = "."
-    vazio = '.'   # alternativas
-    #número de partes da barra de progresso.
-    n_barras = int(capacidade * percentagem)
-    #qtd. de espaços vázios.
-    n_espacos_brancos = capacidade - n_barras
-    return (simbolo*n_barras)+(vazio*n_espacos_brancos)
-
-
-# Retorna a barra de progresso toda personalizada.
-# Há dois modos, a que contam numéricamente, e a 
-# que leva em consideração que está-se trabalhando
-# com grandezas digitais. 
-def progresso(qtd_atual, qtd_total, dados=False):
-   "retorna uma string contendo informações, e a barra de progresso"
-   #porcentagem da tarefa realizada.
-   percentagem = qtd_atual / qtd_total
-
-   #medindo algarismos dos números.
-   espacamento = len(str(qtd_total))
-
-   # dimensão da tela para ver se tal barra cabe.
-   largura = os.get_terminal_size().columns
-
-   # se a opção "dados" estiver ativada, então
-   # trocar a "impressão" para os dados.
-   if dados:
-      encurta = dict(acronomo=True,unidade='byte',sistema='metrico')
-      try:
-         # uma barra personalizada.
-         barra = constroi_barra(percentagem, 'o', 50)
-
-      except PorcentagemError:
-         barra = constroi_barra(1.0, '#', 50)
-         # conversões os valores de bytes para 
-         # legendas legíveis.
-         str_atual = legivel.tamanho(qtd_atual,**encurta)
-         str_total = legivel.tamanho(qtd_total,**encurta)
-         encurta = (str_total, str_total, barra, 100)
-
-      else:
-         # conversões os valores de bytes para 
-         # legendas legíveis.
-         str_atual = legivel.tamanho(qtd_atual,**encurta)
-         str_total = legivel.tamanho(qtd_total,**encurta)
-         encurta = (str_atual, str_total, barra, percentagem*100)
-      
-      # retorno de string baseado na percentagem.
-      if percentagem == 1:
-         # verifica se o texto não excede a largura da 
-         # tela de exibição, se sim, "executa" um erro.
-         L = len(texto_molde_i.format(*encurta, espaco=espacamento))
-         if L+1 > largura:
-            raise NaoCabeNaTelaError(len(texto_molde_i)+1)
-         return texto_molde_i.format(*encurta,espaco=espacamento)+'\n'
-
-      elif percentagem > 1:
-         progresso_str = texto_molde_i.format(*encurta, espaco=espacamento)
-         raise FimDoProgressoError(progresso_str)
-
-      else:
-         # "executa" um erro me caso de não ajuste
-         # na tela de exibição.
-         L = len(texto_molde_i.format(*encurta, espaco=espacamento))
-         if len(texto_molde_i)+1 > largura:
-            raise NaoCabeNaTelaError(len(texto_molde_i)+1)
-         return texto_molde_i.format(*encurta,espaco=espacamento)
-   else:
-      try:
-         #sub-string para barra de progresso.
-         barra = constroi_barra(percentagem, '#', 50)
-
-      except PorcentagemError:
-         barra = constroi_barra(1.0,'#', 50)
-         encurta = (qtd_total, qtd_total, barra, 100)
-
-      else:
-         # o padrão...
-         encurta = (qtd_atual, qtd_total, barra, percentagem*100)
-
-      # retorna uma quebra de linha ou não.
-      if percentagem == 1:
-         # erro em caso de não ajusta à tela.
-         L = len(texto_molde.format(*encurta, espaco=espacamento))
-         if L+1 > largura:
-            raise NaoCabeNaTelaError(L+1)
-         return texto_molde.format(*encurta,espaco = espacamento)+'\n'
-
-      elif percentagem > 1:
-         progresso_str = texto_molde.format(*encurta, espaco=espacamento)
-         raise FimDoProgressoError(progresso_str)
-
-      else:
-         # erro em caso de não ajusta à tela.
-         L = len(texto_molde.format(*encurta, espaco=espacamento))
-         if L+1 > largura:
-            raise NaoCabeNaTelaError(L+1)
-         return texto_molde.format(*encurta,espaco = espacamento)
-
+      return (
+      """a barra excede a tela, por favor 
+      \rredimensione-a em %i caractéres para 
+      \rque possa executar novamentesem distorções."""
+      % X)
+   ...
+...
 
 bloqueador = threading.Lock()
 class Rotatoria(threading.Thread):
@@ -181,6 +79,7 @@ class Rotatoria(threading.Thread):
          texto += self.corrente[k]
          bloqueador.release()
       return texto
+...
 
 class TextoMovimento(Rotatoria):
    def __init__(self, texto, maximo):
@@ -215,10 +114,122 @@ class TextoMovimento(Rotatoria):
          return self.string
       else:
          return super().__repr__()
+...
 
+# Função auxiliar na criação da barra de progresso.
+# Ela cria o progresso em sí.
+def constroi_barra(percentagem, simbolo, capacidade):
+    # levanta uma exceção em caso de uma porcentagem exagerada.
+    if percentagem > 1:
+      raise PorcentagemError()
+    #número de partes da barra de progresso.
+    qtd_b = int(capacidade * percentagem)
+    #qtd. de espaços vázios.
+    qtd_eb = capacidade - qtd_b
+    return (simbolo * qtd_b) + (VAZIO * qtd_eb)
+...
 
-def progresso_rotulo(rotulo, qtd_atual, qtd_total,
-dados=False, dinamico=True):
+def progresso(qtd_atual, qtd_total, dados=False, redimensiona=False):
+   """
+   Retorna a barra de progresso toda personalizada.
+   Há dois modos, a que contam numéricamente, e a 
+   que leva em consideração que está-se trabalhando
+   com grandezas digitais. Também aceita um valor 
+   booleano para 'redimesionalidade', assim é possível
+   extender a quantia de barras até o fim da tela
+   do terminal.
+   """
+   #porcentagem da tarefa realizada.
+   percentagem = qtd_atual / qtd_total
+
+   #medindo algarismos dos números.
+   espacamento = len(str(qtd_total))
+
+   # dimensão da tela para ver se tal barra cabe.
+   largura = get_terminal_size().columns
+
+   # redimensiona comprimento da barra se pedido.
+   if redimensiona:
+      comprimento = computa_qtd_de_barras(qtd_atual, qtd_total)
+   else:
+      comprimento = 50
+
+   # se a opção "dados" estiver ativada, então
+   # trocar a "impressão" para os dados.
+   if dados:
+      encurta = dict(
+         acronomo=True,
+         unidade='byte',
+         sistema='metrico'
+      )
+      try:
+         # uma barra personalizada.
+         barra = constroi_barra(percentagem, 'o', comprimento)
+      except PorcentagemError:
+         barra = constroi_barra(1.0, '#', 50)
+         # conversões os valores de bytes para 
+         # legendas legíveis.
+         str_atual = tamanho(qtd_atual,**encurta)
+         str_total = tamanho(qtd_total,**encurta)
+         encurta = (str_total, str_total, barra, 100)
+      else:
+         # conversões os valores de bytes para 
+         # legendas legíveis.
+         str_atual = tamanho(qtd_atual,**encurta)
+         str_total = tamanho(qtd_total,**encurta)
+         encurta = (str_atual, str_total, barra, percentagem*100)
+      ...
+      
+      # retorno de string baseado na percentagem.
+      if percentagem == 1:
+         # verifica se o texto não excede a largura da 
+         # tela de exibição, se sim, "executa" um erro.
+         L = len(TEXTO_MOLDE_I.format(*encurta, espaco=espacamento))
+         if L+1 > largura:
+            raise NaoCabeNaTelaError(len(TEXTO_MOLDE_I)+1)
+         return TEXTO_MOLDE_I.format(*encurta,espaco=espacamento)+'\n'
+      elif percentagem > 1:
+         raise FimDoProgressoError()
+      else:
+         # "executa" um erro me caso de não ajuste
+         # na tela de exibição.
+         L = len(TEXTO_MOLDE_I.format(*encurta, espaco=espacamento))
+         if len(TEXTO_MOLDE_I)+1 > largura:
+            raise NaoCabeNaTelaError(len(TEXTO_MOLDE_I)+1)
+         return TEXTO_MOLDE_I.format(*encurta,espaco=espacamento)
+      ...
+   else:
+      try:
+         #sub-string para barra de progresso.
+         barra = constroi_barra(percentagem, '#', comprimento)
+      except PorcentagemError:
+         barra = constroi_barra(1.0,'#', 50)
+         encurta = (qtd_total, qtd_total, barra, 100)
+      else:
+         # o padrão...
+         encurta = (qtd_atual, qtd_total, barra, percentagem*100)
+      ...
+
+      # retorna uma quebra de linha ou não.
+      if percentagem == 1:
+         # erro em caso de não ajusta à tela.
+         L = len(TEXTO_MOLDE.format(*encurta, espaco=espacamento))
+         if L+1 > largura:
+            raise NaoCabeNaTelaError(L+1)
+         return TEXTO_MOLDE.format(*encurta,espaco = espacamento)+'\n'
+      elif percentagem > 1:
+         raise FimDoProgressoError()
+      else:
+         # erro em caso de não ajusta à tela.
+         L = len(TEXTO_MOLDE.format(*encurta, espaco=espacamento))
+         if L+1 > largura:
+            raise NaoCabeNaTelaError(L+1)
+         return TEXTO_MOLDE.format(*encurta,espaco = espacamento)
+      ...
+   ...
+...
+
+def progresso_rotulo(rotulo, qtd_atual, qtd_total, dados=False, dinamico=True):
    """
    retorna string contendo barra de progresso, porém com um
    rótulo, que também é animado caso preciso. O modo
@@ -231,7 +242,7 @@ dados=False, dinamico=True):
    # já pega a barra pronta de funções anteriores.
    barra_progresso = progresso(qtd_atual, qtd_total, dados)
    # largura atual da tela do terminal.
-   larguraTERM = os.get_terminal_size().columns
+   larguraTERM = get_terminal_size().columns
    p = qtd_atual/qtd_total # percentagem
 
    if dinamico:
@@ -248,9 +259,9 @@ dados=False, dinamico=True):
             aux.atualiza_progresso(1)
             del aux  # exclui instância.
             raise NaoCabeNaTelaError(len(str_aux)+1)
+         ...
          # retorna string.
          return str_aux
-
       except NameError:
          # texto rotatório.
          aux = TextoMovimento(rotulo, 20)
@@ -258,26 +269,20 @@ dados=False, dinamico=True):
          # chama função novamente após ter criado
          # a instância necessária.
          return progresso_rotulo(rotulo, qtd_atual, qtd_total)
+      ...
    else:
       if len(rotulo) > 20:
          return "{%s...} %s" % (rotulo[:20],barra_progresso)
       else:
          return "{%s} %s"%(rotulo, barra_de_progresso)
+   ...
+...
 
-
-def progresso_redimensionavel(qtd_atual, qtd_total):
+def computa_qtd_de_barras(qtd_atual, qtd_total):
    """
-   retorna uma string contendo informações, e a barra de
-   progresso, assim com a outra, porém este, especifícamente
-   o progresso(parte do carregamento) é redimensionável de
-   acordo com a dimensão da janela, e também preenche-a
-   completamente.
+   retorna melhor comprimento para que a barra se
+   ajuste a tela do terminal.
    """
-   #porcentagem da tarefa realizada.
-   percentagem = qtd_atual / qtd_total
-   if percentagem > 1:
-      raise PorcentagemError("não pode haver mais de 100%")
-
    #medindo algarismos dos números.
    espacamento = len(str(qtd_total))
 
@@ -285,10 +290,10 @@ def progresso_redimensionavel(qtd_atual, qtd_total):
    qtd_espacada = 9
    # nº de algarismos de cada número. Na verdade
    # do total, pois o "atual" cresce.
-   total_algs = 2*len(str(qtd_total))
+   total_algs = 2 * len(str(qtd_total))
 
    # dimensão da tela para ver se tal barra cabe.
-   largura = os.get_terminal_size().columns
+   largura = get_terminal_size().columns
 
    # o que sobra para preencher com a barra. O que é 
    # contabilizado aqui é, o demais textos e símbolo
@@ -298,18 +303,8 @@ def progresso_redimensionavel(qtd_atual, qtd_total):
    # que também aparece. A diferença entre isto e, a largura
    # da tela, nos dá o comprimento ideal do progresso.
    resto = largura-(qtd_espacada+espacamento+total_algs+4)
-
-   # barra de progresso em sí.
-   simbolo = '\ua4ff'
-   barra = constroi_barra(percentagem, simbolo, resto)
-
-   if percentagem == 1.0:
-      return texto_molde.format(qtd_atual, qtd_total, barra,
-                             percentagem*100, espaco=espacamento)+'\n'
-   else:
-      return texto_molde.format(qtd_atual, qtd_total, barra,
-                             percentagem*100, espaco=espacamento)
-
+   return resto
+...
 
 class ProgressoPercentual():
    """
@@ -328,7 +323,7 @@ class ProgressoPercentual():
       # começa do nada, zerado.
       self.qtd_atual = 0
       # percentual do progresso.
-      self._percentual = 0.0 * 100
+      self._percentual = 0.0
    ...
 
    # implementação da atualização de valor.
@@ -368,69 +363,7 @@ class ProgressoPercentual():
       return self.__repr__()
 ...
 
-#[código morto]
-class ProgressoTemporal(threading.Thread):
-   """
-   retornará um impresões num devido tempo
-   limitado, e não uma string para cada
-   valor atualizado.
-   """
-   # limite em millisegundos para mostrar a mensagem.
-   limite = 3_000
-
-   # construtor.
-   def __init__(self, total):
-      # máximo a atingir.
-      self.qtd_total = total
-      # começa do nada, zerado.
-      self.qtd_atual = 0
-      # valor que indica se tem permissão para 
-      # imprimir tal string.
-      self.permitido = True
-      threading.Thread.__init__(self)
-   ...
-
-   def run(self):
-      # enquanto não atingir tal valor alternar
-      # permissão e interromper por determinado
-      # tempo a execução da thread.
-      while self.qtd_atual < self.qtd_total:
-         # alterna impressão a cada tempo delimitado.
-         self.permitido = (not self.permitido)
-         # tempo delimitado, interrompe thread.
-         tempo = ProgressoTemporal.limite / 1_000
-         sleep(tempo)
-      else:
-         # sempre verdade agora que o progresso
-         # foi esgotado.
-         self.permitido = True
-      ...
-   ...
-
-   # implementação da atualização de valor.
-   def __iadd__(self, novo_valor):
-      "faz uma atualização do valor via '+=' simbologia"
-      # registrando nova quantidade.
-      self.qtd_atual = novo_valor
-      return self
-   ...
-
-   # implementação da visualização do objeto.
-   def __repr__(self):
-      "visualização da barra via impressão"
-      # imprime num tempo regular.
-      if self.permitido:
-         return progresso(self.qtd_atual, self.qtd_total)
-      else:
-         return "None"
-   ...
-   def __str__(self):
-      "retornando implementação de __repr__"
-      return self.__repr__()
-...
-
-# nova implementação de outro modo, sem threads.
-class ProgressoTemporal_I():
+class ProgressoTemporal():
    """
    retornará um impresões num devido tempo
    limitado, e não uma string para cada
@@ -442,26 +375,31 @@ class ProgressoTemporal_I():
    # construtor.
    def __init__(self, total):
       # máximo a atingir.
-      self.qtd_total = total
+      self._total = total
       # começa do nada, zerado.
-      self.qtd_atual = 0
-      # tempo de inicio.
-      self.tempo_inicial = time()
+      self._atual = 0
+      self._tempo_inicial = time()
       # permissão de exibição.
-      self.permitido = False
+      self._permitido = False
+      # fim do programa.
+      self._esgotado = False
+      self._qtd_chamadas = 0
    ...
 
    # implementação da atualização de valor.
    def __iadd__(self, novo_valor):
       "faz uma atualização do valor via '+=' simbologia"
+      if self._esgotado:
+         raise FimDoProgressoError()
       # para melhor legibilidade ...
       tempo = time()
-      diferenca = tempo - self.tempo_inicial
-      limite = ProgressoTemporal_I.limite
+      diferenca = tempo - self._tempo_inicial
+      limite = ProgressoTemporal.limite
       # registrando nova quantidade.
-      self.qtd_atual = novo_valor
+      self._atual = novo_valor
+      self._esgotado = (self._atual == self._total)
       if diferenca > limite:
-         self.permitido = True
+         self._permitido = True
          # zera contagem.
          self.tempo_inicial = tempo
       return self
@@ -470,22 +408,21 @@ class ProgressoTemporal_I():
    # implementação da visualização do objeto.
    def __repr__(self):
       "visualização da barra via impressão"
-      # proposições:
-      alcancou_o_fim = (
-         self.qtd_atual == self.qtd_total
-         or self.qtd_atual == 0
-      )
       # imprime num tempo regular.
-      if self.permitido or alcancou_o_fim:
+      diferenca = abs(self._qtd_chamadas - self._total)
+      if self._esgotado and  diferenca > 5:
+         raise FimDoProgressoError()
+      # computando chamadas para lançar 
+      # erro em chamadas excessivas.
+      self._qtd_chamadas += 1
+      if self._permitido or self._esgotado:
          # falseando novamente.
-         self.permitido = False
-         return progresso(self.qtd_atual, self.qtd_total)
+         self._permitido = False
+         return progresso(self._atual, self._total)
       else:
-         return str(None)
+         # sai nada.
+         return ""
    ...
-
-   def __str__(self):
-      return  self.__repr__()
 ...
 
 # o que será importado:
@@ -495,9 +432,7 @@ __all__ = [
    "progresso",
    "FimDoProgressoError",
    "progresso_rotulo",
-   "progresso_redimensionavel",
    "ProgressoPercentual",
-   "ProgressoTemporal",
-   "ProgressoTemporal_I"
+   "ProgressoTemporal"
 ]
 
