@@ -20,7 +20,7 @@ def testa_arvore_i():
    para não ficar entulhando tudo que já tem.
    """
    print("esboço em como foi construído o projeto:")
-   no_modulo = os.system("python3 -B ../lib/arvore.py")
+   no_modulo = os.system("/usr/bin/python3 -B ../src/arvore.py")
    # tempo para visualizar o resultado.
    if __debug__:
       time.sleep(5)
@@ -152,8 +152,11 @@ def benchmark_de_arvores():
 ...
 
 if sys.platform == "linux":
+   from biblioteca import executa_teste
    "executando todos testes ..."
-   #testa_arvore_i()
-   #testa_arvore_ii()
-   benchmark_de_arvores()
+   executa_teste(
+      testa_arvore_i,
+      testa_arvore_ii,
+      benchmark_de_arvores
+   )
 ...
