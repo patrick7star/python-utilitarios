@@ -5,6 +5,7 @@ total dado.
 """
 
 # importando módulo a testar...
+from re import T
 from biblioteca import *
 # biblioteca padrão do Python:
 from time import sleep
@@ -15,11 +16,17 @@ TOTAL = 500_000
 
 
 def teste_progresso():
-   (total, inicial) = TOTAL, 102
+   total = TOTAL//2, 1
    # sintaxe padrão:
    try:
-      for i in range(inicial, total+1):
-         print('\r', progresso(i, total),end='')
+      # testando a versão comum.
+      for i in range(TOTAL //2):
+         print('\r', progresso(i + 1, TOTAL//2),end='')
+      # testando o com dados.
+      for j in range(TOTAL//2):
+         barra = progresso(j + 1, TOTAL//2, dados=True)
+         print( '\r', barra, end='')
+      ...
    except FimDoProgressoError as E:
       print("\nnão é possível mais continuar preenchendo a barra.")
       print("aqui é o resultado final:\n%s\n"%E.progresso)
@@ -37,6 +44,7 @@ def temporizador(T):
          return False
       else: return True
    return aux
+...
 
 def testa_progresso_rotulo():
    titulo = "The Conjuring 3: The End is Coming.avi" 
@@ -75,11 +83,9 @@ def testa_progresso_rotulo_nao_dinamico():
 def testa_progresso_redimensionavel():
    total =  35_921
    for k in range(1, total+1):
-      print('\r',progresso_redimensionavel(k, total),end='')
+      print('\r',progresso(k, total, redimensiona=True),end='')
 ...
 
-# faz o teste do novo objeto que trabalha
-# com percentuais.
 def testa_ProgressoPercentual():
    bp = ProgressoPercentual(TOTAL)
    for valor in range(0,TOTAL+1):
@@ -96,43 +102,27 @@ def testa_ProgressoPercentual():
 
 def testa_ProgressoTemporal():
    bpt = ProgressoTemporal(TOTAL)
-   bpt.start()
-   for valor in range(0, TOTAL+1):
+   (vazias, barras) = (0, 0)
+   for valor in range(1, TOTAL+1):
       # atualiza o valor.
       bpt += valor
-      # visualizando barra se possível.
-      # visualizando barra se possível.
-      string = str(bpt)
-      if string != "None":
-         print('\r', string, end="")
+      print('\r', bpt, end="")
    ...
-   if string != "None":
-      print('\r', string, end="")
-      print("executado corretamente.")
-...
-
-def testa_ProgressoTemporal_I():
-   bpt = ProgressoTemporal_I(TOTAL)
-   for valor in range(0, TOTAL+1):
-      # atualiza o valor.
-      bpt += valor
-      # visualizando barra se possível.
-      string = str(bpt)
-      if string != "None":
-         print('\r', string, end="")
+   # esgotando chamadas e produzindo exceção.
+   print("\nchamando repetidas vezes após o fim:")
+   for _ in range(10):
+      try:
+         print(bpt)
+      except:
+         print("não possível mais usar barra de progresso")
    ...
-   string = str(bpt)
-   if string != "None":
-      print('\r', string, end="")
-   print(bpt, bpt, bpt, sep="\n")
 ...
 
 # executando testes ...
 executa_teste(
    teste_progresso,
-   testa_progresso_rotulo,
-   testa_progresso_redimensionavel,
-   testa_ProgressoPercentual,
-   testa_ProgressoTemporal,
-   testa_ProgressoTemporal_I
+   #testa_progresso_rotulo,
+   #testa_progresso_redimensionavel,
+   #testa_ProgressoPercentual,
+   #testa_ProgressoTemporal
 )
