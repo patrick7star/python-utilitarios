@@ -4,7 +4,8 @@
  minha 'biblioteca padrão' Python.
 """
 
-from queue import Queue
+from os import get_terminal_size
+from copy import deepcopy
 
 class Coluna():
    def __init__(self, rotulo, array):
@@ -140,35 +141,57 @@ def tampa_tabela(linhas):
 ...
 
 def otimiza_uso_de_tela(linhas):
-   meio = len(linhas) // 3
-   qtd = len(linhas)
-   espaco_entre = ESPACO * 3
+   largura = get_terminal_size().columns
+   # largura da tabela.
+   lT = len(linhas[0])
+   # espaço entre as tabelas concatenadas.
+   afastamento = ESPACO * 3
+   # quantas tabelas cabem dado a largura
+   # do terminal. Uma divisão simples entre
+   # a "largura do terminal" divido pela
+   # da tabela mais o espaçamento entre 
+   # elas.
+   n = largura // (lT + len(afastamento))
+   # altura das tabelas. Pode ser qualquer
+   # valor, já que não seria fixo na impressão.
+   aT= len(linhas) // n
+   # fila para reter fatias e concatena-las
+   # baseado na primeira retida.
+   fila_de_fatias = []
+   # uma lista, onde as strings que formam
+   # a tabela(chamadas linhas aqui) são
+   # adicionandas após removidas das demais.
+   fatia = []
 
-   base_i = linhas[0:meio]
-   base_ii = linhas[meio: 2*meio]
-   base_iii = linhas[2*meio:]
-   tampa_tabela(base_i)
-   tampa_tabela(base_ii)
-   tampa_tabela(base_iii)
+   # fatia igualmente as linhas passadas e
+   # guarda tais fatias para anexação posteriore.
+   for k in range(1, len(linhas)+1):
+      if k % aT == 0:
+         tampa_tabela(fatia)
+         fila_de_fatias.append(fatia[:])
+         fatia.clear()
+      else:
+         fatia.append(linhas.pop(0))
+      ...
+   ...
+
+   # limpa para reutilização da referência.
    linhas.clear()
-
-   for i in range(meio + 1):
-      try:
-         linha_b1 = base_i[i]
-         try:
-            linha_b2 = base_ii.pop(0)
-         except:
-            print("segundo, FALHa")
-            linha_b2 = ""
-         try:
-            linha_b3 = base_iii.pop(0)
-         except:
-            print("menor, então uma falha.")
-            linha_b3 = ""
-         nova_linha = linha_b1 + espaco_entre + linha_b2 + espaco_entre + linha_b3
-         linhas.append(nova_linha)
-      except:
-         print("contando falhas ...")
+   # a primeira "fatia" é que junta tudo.
+   remocao = fila_de_fatias.pop(0)
+   linhas.extend(remocao)
+   while len(fila_de_fatias) > 0:
+      fatia_removida = fila_de_fatias.pop(0)
+      indice = 0
+      while len(fatia_removida) > 0:
+         linha = fatia_removida.pop(0)
+         linhas[indice] = (
+            linhas[indice] +
+            afastamento
+            + linha
+         )
+         indice += 1
+      ...
    ...
 ...
 
@@ -177,14 +200,14 @@ def otimiza_uso_de_tela(linhas):
 if __name__ == "__main__":
    from testes import executa_teste
    from random import randint, choice
-   
+
    # dados comuns:
    coluna1 = Coluna("gênero", ['M', 'F', 'F', 'F', 'M'])
    coluna2 = Coluna("idade", [14, 27, 38, 13, 51, 24])
 
    def imprime(array):
       print("\n".join(array), end="\n\n")
-   
+
    def testa_funcao_cria_tabela():
       esboco = aglomera_colunas(coluna1, coluna2)
       imprime(esboco)
@@ -195,7 +218,7 @@ if __name__ == "__main__":
       tampa_tabela(linhas_esboco)
       imprime(linhas_esboco)
    ...
-   
+
    def testa_funcao_ct_dobradura():
       rol = list(choice(['F', 'M']) for _ in range(132))
       coluna1 = Coluna("gênero", rol)
