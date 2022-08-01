@@ -10,36 +10,44 @@ from arvore import matriciar_string
 from copy import deepcopy
 from shutil import get_terminal_size
 import array as Array
-from sys import platform
 
 
 def listagem(strings):
    # largura do terminal.
    largura = get_terminal_size().columns
    # comprimento da maior string.
-   maior = max(len(e) for e in strings) + 2
-   # acumulador para concatenação.
-   linhas = []
-   
-   # forma linhas:
-   acumulado = 0
-   for entrada in strings:
+   maior = max(len(s) for s in strings)
+   # acumulador para concatenação; contador
+   # de entradas por linha; e espaço entre
+   # entradas.
+   (contador, espaco, linhas) = (1, 2, [])
+
+   # entradas por linha.
+   total_na_linha = (largura-1) // (maior+espaco) 
+   # quantos entradas modificadas serão
+   # listadas ao todo.
+   total = maior * len(strings)
+   while total > 0:
+      # remove entrada até que se esgote.
+      # Para aí então, acabar o loop.
+      try:
+         entrada = strings.pop()
+      except IndexError:
+         break
+      # cria uma string baseado na maior
+      # entrada, preenchendo os vácuos 
+      # restantes com "espaço vázio".
       comprimento = len(entrada)
-      # consertando para o Windows PowerShell
-      if platform == "win32":
-         diferenca = abs(maior-comprimento-1)
-      else:
-         diferenca = abs(maior-comprimento)
-      espaco = " " * diferenca
-      aux = entrada + espaco
-     
-      if acumulado <= largura-5:   
-         linhas.append(aux)
-         acumulado += len(aux)
-      else:
-         acumulado = 0
+      diferenca = abs(maior-comprimento)
+      aux = entrada + ' ' * (diferenca + espaco)
+      linhas.append(aux)
+
+      # passou do limite na linha, então vai
+      # a próxima.
+      if contador % total_na_linha == 0:
          linhas.append('\n')
-      ...
+      total -=1
+      contador += 1
    ...
    
    return "".join(linhas)
@@ -141,10 +149,11 @@ __all__ = ["listagem", "escada", "silhueta"]
 if __name__ == "__main__":
     array = [
        "pasta1", "pasta 2", "paste III",
-       "arquivo de configuração.txt", "nada_de_mais.dat",
+       "configuração.txt", "nada_de_mais.dat",
        "total_porno_aqui.jpg", "arquivosinúteis.txt",
        "arquivo_um.cc", "arquivo_sem_uso", 
-       "diretório_qualquer"
+       "diretório_qualquer", "rising house",
+       "new horleans"
     ]
     
     def testa_listagem():

@@ -20,7 +20,6 @@ from os.path import (
 trilha = []
 vazio = ' '
 galho = "\u0b72\u07fa\u07fa" # modelo 1
-#galho = "\u0582\u07fa\u07fa" # modelo 2
 
 # símbolos que representa dos galhos:
 galho_v = galho[0]
@@ -269,8 +268,7 @@ def conserta_galhos(matriz_arvore):
                l -= 1
             ...
          ...
-      except IndexError:
-         pass
+      except IndexError: pass
       ...
    ...
 ...
@@ -285,7 +283,6 @@ tipo_de_galho=GalhoTipo.GROSSO):
    # não for o grosso(padrão), então fazer alteração.
    if tipo_de_galho != GalhoTipo.GROSSO:
       alterna_galho(tipo_de_galho)
-   #caminho = os.path.normpath(caminho)
    # faz um esboço inicial da árvore.
    esboco_de_trilha = esboco(caminho, mostra_arquivos)
    # matricia.
@@ -296,9 +293,10 @@ tipo_de_galho=GalhoTipo.GROSSO):
    matriz_de_trilha.remove_grade()
    # conversão de string é interna a classe.
    return str(matriz_de_trilha)
+...
 
+# altera o tipo de galho global baseado no desejado
 def alterna_galho(glh):
-   " altera o tipo de galho global baseado no desejado"
    # galhos globais "escoporados".
    global galhoVH, galhoVHV, galhoH, galhoV
 
@@ -307,23 +305,63 @@ def alterna_galho(glh):
       galhoV = "\u2503"
       galhoVH = "\u2517"
       galhoVHV = "\u2523"
-
    elif glh == GalhoTipo.FINO:
       galhoH = "\u2500"
       galhoV = "\u2502"
       galhoVH = "\u2570"
       galhoVHV = "\u251c"
-   pass
+   ...
+...
+
+def ramifica_caminho(caminho):
+   """
+   dado um caminho válido, ele pega cria a 
+   arvore, sendo tal caminho existente ou 
+   não, baseando apenas no caminho, espeficicando
+   diretório e sub-diretórios.
+   """
+   dirs = caminho.split(os.sep)
+   alterna_galho(GalhoTipo.FINO)
+   # removendo todos espaços em branco.
+   while dirs.count('') > 0:
+      dirs.remove('')
+
+   # primeiro ocorrência é diferente por 
+   # não ter um recuo, portando o
+   # dispessando.
+   primeiro_nao_ocorreu = True
+   # forma galho que todos irão usar.
+   galho_completo = galhoVH + 2 * galhoH
+   (linhas, recuo) = ([], 0)
+
+   while len(dirs) > 0:
+      remocao = dirs.pop(0)
+      if primeiro_nao_ocorreu:
+         print("%s:" % remocao)
+         primeiro_nao_ocorreu = False
+      else:
+         vacuo = recuo * ' '
+         linha = "{}{}{}:".format(vacuo, galho_completo, remocao)
+         linhas.append(linha)
+         recuo += 3
+      ...
+   ...
+   # removendo os dois pontos do último, pois
+   # pode não ser um diretório.
+   linhas[-1] = linhas[-1][0:-1]
+   return "\n".join(linhas)
 ...
 
 # o que pode ser importado.
-__all__ = ["GalhoTipo","arvore"]
+__all__ = ["GalhoTipo", "ramifica_caminho", "arvore"]
 
 
 # teste protótipos:
 if __name__ == "__main__":
    # módulos próprios:
-   import testes
+   from testes import executa_teste 
+   from os import getenv
+
    def testa_Matriz():
       caminho = ".."
       trilha_esboco = esboco(caminho)
@@ -368,10 +406,21 @@ if __name__ == "__main__":
       print(tree)
    ...
 
+   def teste_de_ramifica_caminho():
+      caminho = join(
+         getenv("HOME"), 
+         "pasta_vázia", "subdir_i",
+         "outra_pasta", "arquivo.txt"
+      )
+      arv = ramifica_caminho(caminho)
+      print(arv)
+   ...
+
    # rodando testes ...
-   testes.executa_teste(
+   executa_teste(
       testa_Matriz,
       testa_conserta_galhos,
-      testa_arvore
+      testa_arvore,
+      teste_de_ramifica_caminho
    )
 ...
