@@ -4,6 +4,8 @@
  minha 'biblioteca padrão' Python.
 """
 
+from queue import Queue
+
 class Coluna():
    def __init__(self, rotulo, array):
       self._rol = array
@@ -29,8 +31,14 @@ class Coluna():
 BARRA = '#'
 # vácuo de espaço comum para debug.
 ESPACO = ' '
+# separador da borda.
+MARGEM = ' '
+# representação da célula vázia.
+TRACOS = "---"
 
 
+# ajusta baseado no comprimento passado
+# "adicionando margens" a string.
 def equilibra_str(string, comprimento):
    str_comprimento = len(string)
    if str_comprimento % 2 != 0:
@@ -49,7 +57,7 @@ def equilibra_str(string, comprimento):
    return string
 ...
 
-def cria_tabela(coluna1, coluna2):
+def aglomera_colunas(coluna1, coluna2):
    linhas = []
    maior_qtd = max(len(coluna1), len(coluna2))
    
@@ -61,11 +69,12 @@ def cria_tabela(coluna1, coluna2):
    rotulo2 = coluna2.nome()
    rotulo2 = equilibra_str(rotulo2, len(rotulo2))
    linhas.append(
-      "{barra}{0}{barra}{1}{barra}"
+      "{barra}{margem}{0}{margem}{barra}{margem}{1}{margem}{barra}"
       .format(
          rotulo2, 
          rotulo1, 
-         barra=BARRA
+         barra = BARRA,
+         margem = MARGEM
       )
    )
    
@@ -76,57 +85,128 @@ def cria_tabela(coluna1, coluna2):
    mc1 = max(len(rotulo1), mc1)
    mc2 = max(len(rotulo2), mc2)
    
+   # adição da margem do valor à borda
+   # da tabela.
+   adicao = len(MARGEM)
    while maior_qtd != 0:
       linha = BARRA
       try:
          celula = str(next(i2))
-         linha += equilibra_str(celula, mc2) + BARRA
+         linha += (
+            MARGEM + 
+            equilibra_str(celula, mc2) + 
+            MARGEM + BARRA
+         )
       except StopIteration:
-         linha += '-' * mc2 + BARRA
+         linha += (
+            MARGEM + equilibra_str(TRACOS, mc2) 
+            + MARGEM + BARRA
+         )
       ...
       try:
          celula = str(next(i1))
-         linha += equilibra_str(celula, mc1) + BARRA
+         linha += (
+            MARGEM + equilibra_str(celula, mc1) 
+            + MARGEM + BARRA
+         )
       except StopIteration:
-         linha += '-' * mc1 + BARRA
+         linha += (
+            MARGEM + equilibra_str(TRACOS, mc1) 
+            + MARGEM + BARRA
+         )
       ...
       linhas.append(linha)
       maior_qtd -= 1
       del linha
    ...
-   tabela = "\n".join(linhas)
-   # criando barras superior e inferior.'
-   return tabela
+
+   return linhas
 ...
 
-def tampa_tabela(tabela_str):
-   "cria barras superiores e inferiores para ela"
-   linhas = tabela_str.split('\n')
+# cria barras superiores, inferiores e centrais.
+def tampa_tabela(linhas):
+   # largura máxima da tabela.
    comprimento = len(linhas[0])
+   # demilitador baseado na largura da tabela.
    barra = BARRA * comprimento
-   # adiciona barra superior.
-   linhas.insert(0, barra)
-   # adicionando barra inferior.
-   linhas.append(barra)
-   return "\n".join(linhas)
+   # para computar a próxima inclusão
+   # na próxima linha de cédulas.
+   qtd = 0
+
+   for indice in range(len(linhas) + 1):
+      linhas.insert(indice + qtd, barra)
+      qtd += 1
+   ...
 ...
+
+def otimiza_uso_de_tela(linhas):
+   meio = len(linhas) // 3
+   qtd = len(linhas)
+   espaco_entre = ESPACO * 3
+
+   base_i = linhas[0:meio]
+   base_ii = linhas[meio: 2*meio]
+   base_iii = linhas[2*meio:]
+   tampa_tabela(base_i)
+   tampa_tabela(base_ii)
+   tampa_tabela(base_iii)
+   linhas.clear()
+
+   for i in range(meio + 1):
+      try:
+         linha_b1 = base_i[i]
+         try:
+            linha_b2 = base_ii.pop(0)
+         except:
+            print("segundo, FALHa")
+            linha_b2 = ""
+         try:
+            linha_b3 = base_iii.pop(0)
+         except:
+            print("menor, então uma falha.")
+            linha_b3 = ""
+         nova_linha = linha_b1 + espaco_entre + linha_b2 + espaco_entre + linha_b3
+         linhas.append(nova_linha)
+      except:
+         print("contando falhas ...")
+   ...
+...
+
 
 # testes unitários:
 if __name__ == "__main__":
    from testes import executa_teste
+   from random import randint, choice
    
    # dados comuns:
    coluna1 = Coluna("gênero", ['M', 'F', 'F', 'F', 'M'])
    coluna2 = Coluna("idade", [14, 27, 38, 13, 51, 24])
+
+   def imprime(array):
+      print("\n".join(array), end="\n\n")
    
    def testa_funcao_cria_tabela():
-      tabela = cria_tabela(coluna1, coluna2)
-      print(tabela, end='\n\n')
+      esboco = aglomera_colunas(coluna1, coluna2)
+      imprime(esboco)
+   ...
 
-   def testa_tampa_tabela():
-      tabela = cria_tabela(coluna1, coluna2)
-      print(tampa_tabela(tabela))
+   def teste_de_funcao_tampa_tabela():
+      linhas_esboco = aglomera_colunas(coluna2, coluna1)
+      tampa_tabela(linhas_esboco)
+      imprime(linhas_esboco)
+   ...
    
+   def testa_funcao_ct_dobradura():
+      rol = list(choice(['F', 'M']) for _ in range(132))
+      coluna1 = Coluna("gênero", rol)
+      rol = list(randint(5, 100) for _ in range(129))
+      coluna2 = Coluna("idade", rol)
+      esboco_inicial = aglomera_colunas(coluna1, coluna2)
+      otimiza_uso_de_tela(esboco_inicial)
+      imprime(esboco_inicial)
+   ...
+
    executa_teste(testa_funcao_cria_tabela)
-   executa_teste(testa_tampa_tabela)
+   executa_teste(teste_de_funcao_tampa_tabela)
+   executa_teste(testa_funcao_ct_dobradura)
 ...
