@@ -11,22 +11,19 @@ reduzido.
 # biblioteca padrão do Python:
 from base64 import encode
 from os import listdir
-from os.path import join
+from os.path import basename,join, dirname, abspath, normpath
+from sys import platform
+from queue import Queue
 # própria biblioteca:
 from tela_objetos import Matriz
 
-# caminhos dos arquivos contendo os "desenhos".
-caminho_alfabeto = r"simbolos\\alfabeto"
-caminho_numeros = r"simbolos\\numeros"
-caminho_pontuacao = r"simbolos\\pontuacao"
 
 # mapa contendo todo alfabeto, dígitos,
 # e pontuações... quase todo símbolos
 # na tabela ASCII.
 tabela = {}
 # verifica os símbolos foram carregados.
-carregados = False
-
+CARREGADOS = False
 
 class MatrizTexto(Matriz):
    def __init__(self, altura, largura):
@@ -42,6 +39,33 @@ class MatrizTexto(Matriz):
       qtd_cols = len(self._linhas[0])
       qtd_lins = len(self._linhas)
       return (qtd_lins, qtd_cols)
+   ...
+...
+
+
+# computa o caminho dado para o
+# diretório símbolos.
+def caminho_simbolos(restante):
+   # acessa um diretório pai e o diretório
+   # "símbolo" contido nele, se e somente se,
+   # está executando o arquivo, e no próprio
+   # diretório dele.
+   if __name__ == "__main__" == __file__ :
+      path = join("../simbolos", restante)
+      return abspath(path)
+   else:
+      # caminho até o arquivo importado.
+      path = abspath(__file__)
+      # strip o arquivo e o diretório localizado.
+      path = dirname(path)
+      path = dirname(path)
+      # chega na raíz da 'lib', onde estão não 
+      # só este código, mas todos os demais.
+      # Então aqui, têm a pasta "símbolos" com
+      # todos dados necesários, acessa ele e
+      # seus subdirs que são dados como argumento.
+      path = join(path, "simbolos", restante)
+      return path
    ...
 ...
 
@@ -67,9 +91,14 @@ def file_to_matriz(arquivo):
 ...
 
 def inicializando():
+   # caminhos dos arquivos contendo os "desenhos".
+   caminho_alfabeto = caminho_simbolos("alfabeto")
+   caminho_numeros = caminho_simbolos("numeros")
+   caminho_pontuacao = caminho_simbolos("outros")
+
    for arquivo in listdir(caminho_alfabeto):
       caminho = join(caminho_alfabeto, arquivo)
-      chave = arquivo[0:-4]
+      chave = arquivo[0:-4].lower()
       desenho = file_to_matriz(open(caminho, "rt"))
       tabela[chave] = desenho
    ...
@@ -77,7 +106,7 @@ def inicializando():
    # carregando números:
    for arquivo in listdir(caminho_numeros):
       caminho = join(caminho_numeros, arquivo)
-      chave = nome_to_digito(arquivo[0:-4])
+      chave = str(nome_to_digito(arquivo[0:-4]))
       desenho = file_to_matriz(open(caminho, "rt"))
       tabela[chave] = desenho
    ...
@@ -89,8 +118,8 @@ def inicializando():
       desenho = file_to_matriz(open(caminho, "rt"))
       tabela[chave] = desenho
    ...
-   global carregados
-   carregados = True
+   global CARREGADOS
+   CARREGADOS = True
 ...
 
 # converte nomes de dígitos nos valores 
@@ -137,6 +166,47 @@ def concatena(mt1, mt2):
    return resultado
 ...
 
+def constroi_str(string):
+   # se não for carregado ainda os símbolos,
+   # então que seja agora.
+   if not CARREGADOS:
+      inicializando()
+
+   # se houver apenas um símbolo, então
+   # apenas entrega a referência/ou cópia
+   # por indexação do mapa..
+   if len(string) == 1:
+      chave = string
+      return tabela[chave]
+   ...
+
+   # A fila se explica por os caractéres
+   # são lidos da esquerda à direita. E
+   # têm que ser formados assim também,
+   # ou seja, o primeiro a ser lido, será
+   # também o primeiro formado(FIFO).
+   fila = Queue(maxsize=len(string)) 
+   for char in string:
+      matriz_texto = tabela[char]
+      fila.put(matriz_texto)
+   ...
+   
+   # o algoritmo é o seguinte, remove o primeiro
+   # e o usa como base para concatenação do segundo,
+   # pegando o resultado o usa como base para 
+   # demais concatenações até a fila acabar.
+   remocao = fila.get()
+   resultado = remocao
+   while not fila.empty():
+      nova_remocao = fila.get()
+      resultado = concatena(resultado, nova_remocao)
+   ...
+   return resultado
+...
+
+# o que será importado.
+__all__ = ["constroi_str"]
+
 
 if __name__ == "__main__":
    from pprint import pprint
@@ -151,18 +221,31 @@ if __name__ == "__main__":
             print("chave: %i" % chave)
          print(tabela[chave], end="\n\n")
       ...
-      assert carregados
+      assert CARREGADOS
    ...
 
    def testa_funcao_concatena():
-      a = tabela['A']
-      dois = tabela[2]
+      a = tabela['a']
+      dois = tabela['2']
       juncao = concatena(a, dois)
       print(juncao)
       juncao = concatena(dois, a)
       print(juncao)
    ...
+
+   def teste_de_constroi_str():
+      texto_desenho = constroi_str("bigorna")
+      print(texto_desenho)
+      texto_desenho = constroi_str("pe")
+      print(texto_desenho)
+      texto_desenho = constroi_str("k")
+      print(texto_desenho)
+   ...
+
    # execução em sí.
-   executa_teste(testa_procedimento_inicializando)
-   executa_teste(testa_funcao_concatena)
+   executa_teste(
+      testa_procedimento_inicializando,
+      testa_funcao_concatena,
+      teste_de_constroi_str
+   )
 ...
