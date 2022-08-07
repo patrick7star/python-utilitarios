@@ -10,10 +10,10 @@ reduzido.
 
 # biblioteca padrão do Python:
 from base64 import encode
-from os import listdir
+from os import listdir, get_terminal_size
 from os.path import basename,join, dirname, abspath, normpath
 from sys import platform
-from queue import Queue
+from queue import Queue, SimpleQueue
 # própria biblioteca:
 from tela_objetos import Matriz
 
@@ -94,7 +94,7 @@ def inicializando():
    # caminhos dos arquivos contendo os "desenhos".
    caminho_alfabeto = caminho_simbolos("alfabeto")
    caminho_numeros = caminho_simbolos("numeros")
-   caminho_pontuacao = caminho_simbolos("outros")
+   caminho_pontuacao = caminho_simbolos("pontuacao")
 
    for arquivo in listdir(caminho_alfabeto):
       caminho = join(caminho_alfabeto, arquivo)
@@ -155,12 +155,11 @@ def concatena(mt1, mt2):
    for y in range(a2):
       for x in range(l2):
          char = mt2[y][x]
-         x1 = x + (1 + l1)
          if a2 < a1:
             y1 = y + diferenca
          else:
             y1 = y
-         resultado.altera(y1, x1, char)
+         resultado.altera(y1, x + l1, char)
       ...
    ...
    return resultado
@@ -185,7 +184,7 @@ def constroi_str(string):
    # têm que ser formados assim também,
    # ou seja, o primeiro a ser lido, será
    # também o primeiro formado(FIFO).
-   fila = Queue(maxsize=len(string)) 
+   fila = SimpleQueue() 
    for char in string:
       matriz_texto = tabela[char]
       fila.put(matriz_texto)
@@ -204,6 +203,157 @@ def constroi_str(string):
    return resultado
 ...
 
+class Palavras:
+   "iterador de palavras e demais dados ao formar a frase"
+   def __init__(self, frase):
+      # para futuras indexação do objeto.
+      indice = 0
+      # lista de palavras.
+      self._palavras = []
+      
+
+      for palavra in frase.split():
+         texto_desenho = constroi_str(palavra)
+         info = (texto_desenho, palavra, indice)
+         indice += 1
+         self._palavras.append(info)
+      ...
+   ...
+
+   def __iter__(self):
+      # atributo para a iteração da lista.
+      self._posicao_atual = 0
+      # retorna própria referência do objeto.
+      return self
+   ...
+
+   def __next__(self):
+      indice = self._posicao_atual
+      ultimo = len(self._palavras) - 1
+
+      if indice <= ultimo:
+         info = self._palavras[indice]
+         self._posicao_atual += 1
+         return info
+      else:
+         raise StopIteration()
+   ...
+
+   def __contains__(self, string):
+      for (_, palavra, _) in self._palavras:
+         if string == palavra:
+            return True
+      ...
+      return False
+   ...
+
+   def __len__(self):
+      return len(self._palavras)
+   
+   def __getitem__(self, indice):
+      for (mt, s, i) in self._palavras:
+         if indice == i:
+            return (mt, s)
+      ...
+      # não existe tal índice.
+      raise IndexError()
+   ...
+...
+
+def clona_fila(fila):
+   fila_clone = Queue()
+   qtd = fila.qsize()
+   while qtd > 0:
+      remocao = fila.get()
+      fila_clone.put(remocao)
+      fila.put(remocao)
+      qtd -= 1
+   ...
+   return fila_clone
+...
+
+def concatena_vertical(mt1, mt2):
+   largura = max(l_mt1, l_mt2)
+   altura = a_mt1 + a_mt2 + 1
+...
+
+class Texto:
+   def __init__(self, texto, align=None):
+      self._palavras = Palavras(texto)
+      self._linhas = Queue()
+      self._limite_tela = (get_terminal_size().columns - 1)
+      # divide a palavras de acordo com
+      # o limite do terminal.
+      self._split()
+   ...
+
+   # separa as palavras iteradas em linhas.
+   def _split(self):
+      (acumulado, linha) = (0, [])
+      terminal_largura = get_terminal_size().columns
+      for (mt, _, i) in self._palavras:
+         (_, largura) = mt.dimensao()
+         acumulado += (largura + 3)
+
+         if acumulado > self._limite_tela:
+            acumulado = 0
+            self._linhas.put(tuple(linha))
+            linha.clear()
+         ...
+         # adicionará apenas o cabível.
+         linha.append(i)
+      ...
+      if len(linha) > 0:
+         self._linhas.put(tuple(linha))
+   ...
+
+   def __str__(self):
+      if __debug__:
+         linhas = clona_fila(self._linhas)
+         n = 1
+         while not linhas.empty():
+            print("%iª linha:" % (n))
+            linha = linhas.get()
+            for indice in linha:
+               tupla = self._palavras[indice]
+               print(tupla[0])
+            ...
+            n += 1
+            print("")
+         ...
+      ...
+
+      if __debug__:
+         espaco = MatrizTexto(4, 3)
+         self._string = []
+         (n, base) = (1, None)
+         while not self._linhas.empty():
+            item = self._linhas.get(block=False)
+            for indice in item:
+               palavra = self._palavras[indice][0]
+               if base is None:
+                  base = concatena(palavra, espaco)
+               else:
+                  base = concatena(base, palavra)
+                  # adiciona espaço no fim, se e somente
+                  # se, não é a última palavra da 
+                  # iteração de 'linha'.
+                  if base != item[-1]:
+                     base = concatena(base, espaco)
+               ...
+            ...
+            self._string.append(base)
+            base = None
+         ...
+      ...
+
+      for (n, linha) in enumerate(self._string):
+         print("linha %i:" % (n+1))
+         print(linha)
+      return ""
+   ...
+...
+
 # o que será importado.
 __all__ = ["constroi_str"]
 
@@ -211,6 +361,7 @@ __all__ = ["constroi_str"]
 if __name__ == "__main__":
    from pprint import pprint
    from testes import executa_teste
+   from time import sleep
 
    def testa_procedimento_inicializando():
       inicializando()
@@ -242,10 +393,36 @@ if __name__ == "__main__":
       print(texto_desenho)
    ...
 
+   def testa_classe_palavras():
+      objeto = Palavras(
+         "there she goes there she goes " +
+         "again and for you my friend " +
+         "refrain you know"
+      )
+      for palavra in objeto:
+         print(palavra)
+         print(palavra[0])
+         sleep(1.5)
+      ...
+      assert "there" in objeto
+      assert "my" in objeto
+      assert not("out" in objeto)
+      assert len(objeto) == 15
+      assert objeto[5][1] == "goes"
+      assert objeto[11][1] == "friend"
+   ...
+
+   def teste_classe_texto():
+      t = Texto("hoje e dia de algo novo baby")
+      print(t)
+   ...
+
    # execução em sí.
    executa_teste(
-      testa_procedimento_inicializando,
-      testa_funcao_concatena,
-      teste_de_constroi_str
+      #testa_procedimento_inicializando,
+      #testa_funcao_concatena,
+      #teste_de_constroi_str,
+      #testa_classe_palavras
+      teste_classe_texto
    )
 ...
