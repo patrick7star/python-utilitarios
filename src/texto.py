@@ -40,6 +40,31 @@ class MatrizTexto(Matriz):
       qtd_lins = len(self._linhas)
       return (qtd_lins, qtd_cols)
    ...
+
+   def concatena_vertical(self, outra_mt):
+      (a_omt, l_omt) = outra_mt.dimensao()
+      (a_mt, l_mt) = self.dimensao()
+      altura = a_omt + a_mt
+      largura = max(l_mt, l_omt)
+      # nova matriz-texto que embarca ambas.
+      resultado = MatrizTexto(altura + 1, largura)
+
+      # posicionando cada nos seus devidos lugares.
+      for y in range(a_mt):
+         for x in range(l_mt):
+            char = self[y][x]
+            resultado.altera(y, x, char)
+         ...
+      ...
+      for y in range(a_omt):
+         for x in range(l_omt):
+            char = outra_mt[y][x]
+            resultado.altera(y + a_mt+1, x, char)
+         ...
+      ... 
+
+      return resultado
+   ...
 ...
 
 
@@ -76,15 +101,9 @@ def file_to_matriz(arquivo):
    matriz = MatrizTexto(qtd_lin, qtd_col)
    for (y, linha) in enumerate(linhas):
       for (x, char) in enumerate(linha):
-         try:
-            # burla quebra-de-linhas.
-            if char != '\n':
-               matriz.altera(y, x, char)
-         except IndexError:
-            # sem indexação, apenas adiciona
-            # espaços brancos para uniformidade.
-            matriz.altera(y, x, ' ')
-         ...
+         if char == '\n':
+            continue
+         matriz.altera(y, x, char)
       ...
    ...
    return matriz
@@ -140,7 +159,7 @@ def concatena(mt1, mt2):
    diferenca = abs(a1-a2)
    # computa maior dimensão
    altura = max(a1, a2)
-   largura = l1 + l2 + 1
+   largura = l1 + l2
    # matriz-texto resultante.
    resultado = MatrizTexto(altura, largura)
    for y in range(a1):
@@ -282,13 +301,22 @@ class Texto:
       self._palavras = Palavras(texto)
       self._linhas = Queue()
       self._limite_tela = (get_terminal_size().columns - 1)
+      # alinhamento inicial do texto.
+      self._alinhamento = align
+      # texto uma vez formado é para ser
+      # colocado neste atributo. Para que 
+      # evite consumo de CPU futuramente para
+      # se computar o mesmo texto. Tal atributo
+      # será apenas modificado se 'alinhamento'
+      # ou 'largura da tela' mudarem.
+      self._texto = None
       # divide a palavras de acordo com
       # o limite do terminal.
-      self._split()
+      self._separa_em_linhas()
    ...
 
    # separa as palavras iteradas em linhas.
-   def _split(self):
+   def _separa_em_linhas(self):
       (acumulado, linha) = (0, [])
       terminal_largura = get_terminal_size().columns
       for (mt, _, i) in self._palavras:
@@ -296,9 +324,9 @@ class Texto:
          acumulado += (largura + 3)
 
          if acumulado > self._limite_tela:
-            acumulado = 0
             self._linhas.put(tuple(linha))
             linha.clear()
+            acumulado = largura
          ...
          # adicionará apenas o cabível.
          linha.append(i)
@@ -308,49 +336,41 @@ class Texto:
    ...
 
    def __str__(self):
-      if __debug__:
-         linhas = clona_fila(self._linhas)
-         n = 1
-         while not linhas.empty():
-            print("%iª linha:" % (n))
-            linha = linhas.get()
-            for indice in linha:
-               tupla = self._palavras[indice]
-               print(tupla[0])
+      if self._texto is not None:
+         return str(self._texto)
+      
+      # começa todo processo de concatenação ...
+      espaco = MatrizTexto(4, 3)
+      linhas = SimpleQueue()
+      # processo de concatenação horizontal.
+      (n, base) = (1, None)
+      while not self._linhas.empty():
+         item = self._linhas.get()
+         for indice in item:
+            palavra = self._palavras[indice][0]
+            if base is None:
+               base = concatena(palavra, espaco)
+            else:
+               base = concatena(base, palavra)
+               # adiciona espaço no fim, se e somente
+               # se, não é a última palavra da 
+               # iteração de 'linha'.
+               if base != item[-1]:
+                  base = concatena(base, espaco)
             ...
-            n += 1
-            print("")
          ...
+         linhas.put(base)
+         base = None
+      ...
+      # agora o processo de concatenação vertical.
+      self._texto = linhas.get()
+      while not linhas.empty():
+         item = linhas.get()
+         self._texto = self._texto.concatena_vertical(item)
       ...
 
-      if __debug__:
-         espaco = MatrizTexto(4, 3)
-         self._string = []
-         (n, base) = (1, None)
-         while not self._linhas.empty():
-            item = self._linhas.get(block=False)
-            for indice in item:
-               palavra = self._palavras[indice][0]
-               if base is None:
-                  base = concatena(palavra, espaco)
-               else:
-                  base = concatena(base, palavra)
-                  # adiciona espaço no fim, se e somente
-                  # se, não é a última palavra da 
-                  # iteração de 'linha'.
-                  if base != item[-1]:
-                     base = concatena(base, espaco)
-               ...
-            ...
-            self._string.append(base)
-            base = None
-         ...
-      ...
-
-      for (n, linha) in enumerate(self._string):
-         print("linha %i:" % (n+1))
-         print(linha)
-      return ""
+      # matrix-texto para string.
+      return str(self._texto)
    ...
 ...
 
@@ -413,16 +433,16 @@ if __name__ == "__main__":
    ...
 
    def teste_classe_texto():
-      t = Texto("hoje e dia de algo novo baby")
+      t = Texto("visual code is a worst than i thought before use it")
       print(t)
    ...
 
    # execução em sí.
    executa_teste(
-      #testa_procedimento_inicializando,
-      #testa_funcao_concatena,
-      #teste_de_constroi_str,
-      #testa_classe_palavras
+      testa_procedimento_inicializando,
+      testa_funcao_concatena,
+      teste_de_constroi_str,
+      testa_classe_palavras,
       teste_classe_texto
    )
 ...
