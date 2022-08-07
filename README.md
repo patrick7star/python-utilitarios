@@ -1,4 +1,10 @@
-# Utilitários em Python
+# Utilitários em Python 
+
+#### versões:
+<a href="https://github.com/TheAlgorithms/">
+    <img src="https://img.shields.io/pypi/pyversions/tomlkit.svg?logo=python&logoColor=white" height="15">
+</a>
+
 É uma biblioteca com funções básicas em Python que escrevi há muito tempo, pórem são reutilizados, bastante, em vários dos meus códigos.
 Entre tudo está:
     . Conversões de números no sistema decimal posicional e números romanos.
