@@ -1,4 +1,4 @@
-# Útilitarios em Python
+# Utilitários em Python
 É uma biblioteca com funções básicas em Python que escrevi há muito tempo, pórem são reutilizados, bastante, em vários dos meus códigos.
 Entre tudo está:
     . Conversões de números no sistema decimal posicional e números romanos.
@@ -23,5 +23,25 @@ Entre tudo está:
       sua sombra levando em conta os espaços e quebra de linhas, retornando
       uma bela impressão sobre o seu texto.
      
-    . Um arquivo com funções básicas de aritmética, como gerar 'n' primos,
+    . Um arquivo com funções básicas de aritmética, como gerar **n** primos,
      ou se um número é primo, computa divisores e etc.
+
+    . Também têm um módulo que cuida de escrever letras, palavras, frases
+     ou textos passados como argumento num *texto-desenhado*.
+
+
+## Exemplos:
+
+### módulo *tela*:
+```python
+tela = Tela(15, 20, grade=True)
+tela.risca(Ponto(5, 6), simbolo='+')
+```
+
+### módulo *barra_de_progresso*:
+```python
+tota = 50_329
+progresso = ProgressoTemporal(total)
+for valor in range(1, total + 1):
+    print(progresso(valor))
+```
