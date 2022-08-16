@@ -12,18 +12,45 @@ original, e como já dito, exportado.
 
 # acessando diretório com códigos...
 from sys import path
-from os import getenv
-from os.path import join
+from os import getenv, system, wait, remove
+from os.path import join, abspath, dirname, exists
+
+# computa o caminho dado para o
+# diretório 'source-codes'.
+def computa_caminho(restante):
+   # acessa um diretório pai e o diretório
+   # "símbolo" contido nele, se e somente se,
+   # está executando o arquivo, e no próprio
+   # diretório dele.
+   if __name__ == "__main__" == __file__ :
+      path = join("../src", restante)
+      return abspath(path)
+   else:
+      # caminho até o arquivo importado.
+      raiz = abspath(__file__)
+      # strip o arquivo e o diretório localizado.
+      raiz = dirname(raiz)
+      #path = dirname(path)
+      # chega na raíz da 'lib', onde estão não 
+      # só este código, mas todos os demais.
+      # Então aqui, têm a pasta "símbolos" com
+      # todos dados necesários, acessa ele e
+      # seus subdirs que são dados como argumento.
+      if restante == None:
+         return raiz
+      path = join(raiz, restante)
+      return path
+   ...
+...
+
 if __name__ == "__main__":
    path.append("src/")
 else:
-   caminho = join(
-      getenv("HOME"),
-      "Documents",
-      "python-utilitarios",
-      "src"
-   )
+   caminho = computa_caminho("src/") 
+   print("formado =", caminho)
+   path.append(caminho)
 ...
+
 
 # importando...
 import barra_de_progresso
@@ -42,6 +69,31 @@ import impressao
 # descontinuado.
 import aritimetica
 import tabelas
+import texto
+
+# verificando diretório com símbolos ...
+caminho = computa_caminho("simbolos")
+if exists(caminho):
+   print("diretório símbolos está ok!")
+   # fazendo árvore apenas para ilustração.
+   tg = arvore.GalhoTipo.FINO
+   print(arvore.arvore(caminho, tipo_de_galho=tg))
+else:
+   print("não existe diretório 'simbolos', então extraindo ...")
+   caminho_arquivo_tar = computa_caminho("simbolos.tar")
+   if exists(caminho_arquivo_tar):
+      print("sim, existe o arquivo!")
+      destino = computa_caminho(None)
+      print(arvore.ramifica_caminho(destino))
+      comando = (
+         "tar -vx --one-top-level={} -f {}"
+         .format(destino, caminho_arquivo_tar)
+      )
+      print("removendo \"%s\" ..." % caminho_arquivo_tar)
+      #remove(caminho_arquivo_tar)
+      system(comando)
+   ...
+...
 
 # re-exportando ...
 __all__ = [
@@ -55,7 +107,8 @@ __all__ = [
    "aritimetica",
    "testes",
    "tabelas",
-   "numeros_por_extenso"
+   "numeros_por_extenso",
+   "texto"
 ]
 
 # computa o tipo de dado que é 
