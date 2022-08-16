@@ -12,7 +12,18 @@ original, e como já dito, exportado.
 
 # acessando diretório com códigos...
 from sys import path
-path.append("src/")
+from os import getenv
+from os.path import join
+if __name__ == "__main__":
+   path.append("src/")
+else:
+   caminho = join(
+      getenv("HOME"),
+      "Documents",
+      "python-utilitarios",
+      "src"
+   )
+...
 
 # importando...
 import barra_de_progresso
@@ -43,7 +54,8 @@ __all__ = [
    "impressao",
    "aritimetica",
    "testes",
-   "tabelas"
+   "tabelas",
+   "numeros_por_extenso"
 ]
 
 # computa o tipo de dado que é 
