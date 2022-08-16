@@ -249,6 +249,13 @@ def buscaNumerosPerfeitos(a_partir=1, faixa = 1000):
         i += 1
     return (nP, i)
 
+__all__ = [
+   "ePrimo", "mmc", "mdc",
+   "buscaNumerosPerfeitos",
+   "eNumeroPerfeito",
+   "geraNPrimos",
+   "fatora"
+]
 
 # *** *** *** execução *** *** ***
 

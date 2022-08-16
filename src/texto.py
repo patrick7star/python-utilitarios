@@ -9,7 +9,6 @@ reduzido.
 """
 
 # biblioteca padrão do Python:
-from base64 import encode
 from os import listdir, get_terminal_size
 from os.path import basename,join, dirname, abspath, normpath
 from sys import platform
@@ -24,6 +23,15 @@ from tela_objetos import Matriz
 tabela = {}
 # verifica os símbolos foram carregados.
 CARREGADOS = False
+# caractéres equivalente aos seguintes
+# nomes de arquivos.
+EQUIVALENTE = (
+   ('(', "abre_aspas_duplas"),
+   (':', "dois_pontos"),
+   ('-', "traco"),
+   ('=', "traco"),
+   ('/', "slash")
+)
 
 class MatrizTexto(Matriz):
    def __init__(self, altura, largura):
@@ -66,7 +74,6 @@ class MatrizTexto(Matriz):
       return resultado
    ...
 ...
-
 
 # computa o caminho dado para o
 # diretório símbolos.
@@ -184,6 +191,15 @@ def concatena(mt1, mt2):
    return resultado
 ...
 
+
+def traduz_chave(char):
+   for tupla in EQUIVALENTE:
+      if tupla[0] == char:
+         return tupla[1]
+   ...
+   return char
+...
+
 def constroi_str(string):
    # se não for carregado ainda os símbolos,
    # então que seja agora.
@@ -194,7 +210,7 @@ def constroi_str(string):
    # apenas entrega a referência/ou cópia
    # por indexação do mapa..
    if len(string) == 1:
-      chave = string
+      chave = traduz_chave(string)
       return tabela[chave]
    ...
 
@@ -203,12 +219,12 @@ def constroi_str(string):
    # têm que ser formados assim também,
    # ou seja, o primeiro a ser lido, será
    # também o primeiro formado(FIFO).
-   fila = SimpleQueue() 
+   fila = SimpleQueue()
    for char in string:
-      matriz_texto = tabela[char]
+      matriz_texto = tabela[traduz_chave(char)]
       fila.put(matriz_texto)
    ...
-   
+
    # o algoritmo é o seguinte, remove o primeiro
    # e o usa como base para concatenação do segundo,
    # pegando o resultado o usa como base para 
@@ -410,6 +426,12 @@ if __name__ == "__main__":
       texto_desenho = constroi_str("pe")
       print(texto_desenho)
       texto_desenho = constroi_str("k")
+      print(texto_desenho)
+      texto_desenho = constroi_str("casa-de-queijo")
+      print(texto_desenho)
+      texto_desenho = constroi_str("13/04")
+      print(texto_desenho)
+      texto_desenho = constroi_str("08:38:52")
       print(texto_desenho)
    ...
 
