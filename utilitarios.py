@@ -74,24 +74,27 @@ import texto
 # verificando diretório com símbolos ...
 caminho = computa_caminho("simbolos")
 if exists(caminho):
-   print("diretório símbolos está ok!")
+   print("\ndiretório 'símbolos' está ok!")
    # fazendo árvore apenas para ilustração.
    tg = arvore.GalhoTipo.FINO
-   print(arvore.arvore(caminho, tipo_de_galho=tg))
+   print(arvore.arvore(caminho, tipo_de_galho=tg), end='')
 else:
-   print("não existe diretório 'simbolos', então extraindo ...")
+   print(
+      "não existe diretório 'simbolos', então "
+      + "extraindo do arquivo 'simbolos.tar'..."
+   )
    caminho_arquivo_tar = computa_caminho("simbolos.tar")
+
    if exists(caminho_arquivo_tar):
-      print("sim, existe o arquivo!")
       destino = computa_caminho(None)
       print(arvore.ramifica_caminho(destino))
       comando = (
          "tar -vx --one-top-level={} -f {}"
          .format(destino, caminho_arquivo_tar)
       )
-      print("removendo \"%s\" ..." % caminho_arquivo_tar)
-      #remove(caminho_arquivo_tar)
       system(comando)
+      print("removendo \"%s\" ..." % caminho_arquivo_tar)
+      remove(caminho_arquivo_tar)
    ...
 ...
 
