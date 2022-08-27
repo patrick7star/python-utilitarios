@@ -12,8 +12,9 @@ original, e como já dito, exportado.
 
 # acessando diretório com códigos...
 from sys import path
-from os import getenv, system, wait, remove
+from os import getenv, system, remove
 from os.path import join, abspath, dirname, exists
+import tarfile
 
 # computa o caminho dado para o
 # diretório 'source-codes'.
@@ -88,11 +89,19 @@ else:
    if exists(caminho_arquivo_tar):
       destino = computa_caminho(None)
       print(arvore.ramifica_caminho(destino))
-      comando = (
-         "tar -vx --one-top-level={} -f {}"
-         .format(destino, caminho_arquivo_tar)
-      )
-      system(comando)
+      """
+      if platform == "linux":
+         comando = (
+            "tar -vx --one-top-level={} -f {}"
+            .format(destino, caminho_arquivo_tar)
+         )
+         system(comando)
+      elif platform == "win32":
+      """
+      archive = tarfile.open("simbolos.tar")
+      archive.extractall()
+      archive.close()
+
       print("removendo \"%s\" ..." % caminho_arquivo_tar)
       remove(caminho_arquivo_tar)
    ...
