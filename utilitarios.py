@@ -37,10 +37,12 @@ def computa_caminho(restante):
       # Então aqui, têm a pasta "símbolos" com
       # todos dados necesários, acessa ele e
       # seus subdirs que são dados como argumento.
-      if restante == None:
+      if restante is None:
          return raiz
-      path = join(raiz, restante)
-      return path
+      else:
+         path = join(raiz, restante)
+         return path
+      ...
    ...
 ...
 
@@ -98,8 +100,8 @@ else:
          system(comando)
       elif platform == "win32":
       """
-      archive = tarfile.open("simbolos.tar")
-      archive.extractall()
+      archive = tarfile.open(caminho_arquivo_tar)
+      archive.extractall(path=computa_caminho(None))
       archive.close()
 
       print("removendo \"%s\" ..." % caminho_arquivo_tar)
