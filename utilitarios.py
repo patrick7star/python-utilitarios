@@ -1,3 +1,4 @@
+#!/usr/bin/python3 -OB
 
 """
 importa todos módulos atualmente importante
@@ -66,7 +67,6 @@ import romanos
 import tela_i as tela
 import arvore_ii as arvore
 import numeros_por_extenso
-import testes
 import impressao
 # não usado muito, então dado como
 # descontinuado.
@@ -119,7 +119,6 @@ __all__ = [
    "tela",
    "impressao",
    "aritimetica",
-   "testes",
    "tabelas",
    "numeros_por_extenso",
    "texto"
@@ -179,7 +178,7 @@ if __name__ == "__main__":
       barra_de_progresso,
       legivel, espiral,
       arvore, romanos,
-      tela, impressao, testes,
+      tela, impressao,
       numeros_por_extenso,
       tabelas, aritimetica
    ]
