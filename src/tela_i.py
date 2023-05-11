@@ -7,6 +7,9 @@ from sys import platform, getsizeof
 # re-exportando.
 from tela_objetos import *
 
+# determinando o que será importado.
+__all__ = ["Tela", "Ponto", "Matriz"]
+
 
 class Tela:
    """
@@ -428,37 +431,4 @@ class Tela:
    ...
 ...
 
-# determinando o que será importado.
-__all__ = ["Tela", "Ponto"]
 
-
-if __name__ == "__main__":
-   from testes import executa_teste
-   def teste_generico_da_nova_matriz():
-      m = Matriz(10, 70, True)
-      print(m,end="\n\n")
-      m.altera(6, 35, '@'); m.altera(4, 35, '#'); m.altera(5, 35, 'X')
-      print("indexa(5, 35) = ", m[5][35])
-      print(m,end="\n\n")
-      print("indexa(5, 35) = ", m[5][35])
-      print("mudando...\naltera(4, 34) = '*'")
-      m[4][34] = '*'
-      print(m,end="\n\n")
-   ...
-   
-   def testa_metodo_desfazer():
-      t = Tela(None, None, grade=True)
-      t.risca(Ponto(3, 7), 24)
-      t.risca(Ponto(1, 16), 13, simbolo='+', horizontal=False)
-      print("mostrando tela", t, sep='\n')
-      t.desfazer()
-      print("tela depois de desfeito", t, sep='\n')
-      t.desfazer()
-      print(t)
-   ...
-   
-   executa_teste(
-   teste_generico_da_nova_matriz,
-   testa_metodo_desfazer
-   )
-...

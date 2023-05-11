@@ -7,10 +7,13 @@ neste módulos. Serão chamadas no módulo
 principal e re-exportados.
 """
 
-from array import array
+from array import array as Array
+
+# o que será importado.
+__all__ = ("Matriz", "Ponto")
 
 class Matriz:
-   def __init__(self, qtd_l, qtd_c, grade=False):
+   def __init__(self, linhas, colunas, grade=False):
       # "reference array" contendo "compact arrays"
       # por motivos de otimização.
       self._linhas = []
@@ -20,15 +23,10 @@ class Matriz:
       else:
          self._celula = ' '
       # criando linhas do "quadro".
-      for q in range(qtd_l):
-         colunas = array('u', [self._celula]*qtd_c)
-         self._linhas.append(colunas)
+      for q in range(linhas):
+         a = Array('u', [self._celula]*colunas)
+         self._linhas.append(a)
       ...
-   ...
-   def altera(self, linha, coluna, char):
-      # se não for uma novo caractére em branco.
-      if char != self._celula:
-         self._linhas[linha][coluna] = char
    ...
    def __str__(self):
       string = ""
@@ -40,12 +38,15 @@ class Matriz:
       return string
    ...
    def __getitem__(self, linha_indice):
+      # manda referência da array interna,
+      # que também será indexada.
       return self._linhas[linha_indice]
    ...
    def __sizeof__(self):
       acumulado = sum(sys.getsizeof(s) for s in self._linhas)
       acumulado += sys.getsizeof(self._linhas)
       return acumulado + sys.getsizeof(self._celula)
+   ...
 ...
 
 class Ponto:
@@ -148,3 +149,4 @@ class Ponto:
          raise StopIteration("sem mais valores a iterar!")
    ...
 ...
+

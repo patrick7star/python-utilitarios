@@ -16,10 +16,10 @@ class Grandeza(Enum):
    BINARIO = auto()
 ...
 
-# constantes com escalas de tempo, com suas 
+# constantes com escalas de tempo, com suas
 # equivalências em segundos.
-# A coisa dos múltiplos de submúltiplos são 
-# bem confusos, não seguem o sistema 
+# A coisa dos múltiplos de submúltiplos são
+# bem confusos, não seguem o sistema
 #métrico... inicialmente!
 miliseg = 1 / 1_000
 microseg = 1 / 10**6
@@ -113,7 +113,7 @@ def tamanho(valor, *, unidade, acronomo, sistema):
 ...
 
 # Representar o tempo de forma legível,
-# onde converte todos valores passados na 
+# onde converte todos valores passados na
 # ordem de segundos para  minutos, horas
 # décadas, meses, milisegundos, nanosegundos
 # e etc...
@@ -159,9 +159,9 @@ def converte(t):
       raise Exception("não implementado para tal tamanho!")
 ...
 
-def tempo(segundos, arredonda=False, acronomo=False):
+def tempo(segundos, arredonda=False, acronomo=False) -> str:
    """
-   conserta o plural em alguns casos, a função 
+   conserta o plural em alguns casos, a função
    original é reescrita
    """
    # fazendo a tradução normal.
@@ -180,7 +180,7 @@ def tempo(segundos, arredonda=False, acronomo=False):
       return tempo_str
 ...
 
-def tamanho(valor, unidade, sistema, acronomo=True):
+def tamanho(valor, unidade, sistema, acronomo=True) -> str:
    '''
    Função que retorna um sufixo com a unidade
    de informação traduzida do melhor modo possível
@@ -236,12 +236,12 @@ def tamanho(valor, unidade, sistema, acronomo=True):
    #dicionário  contendo todos intervalos de variação
    #e seus respectivos múltiplos para deixar
    #mais legível tal número.
-   ordem = { 
-      (a,b):U for(a,b,U) in zip( 
-         range(x1,x2,dx), 
-         range(y1,y2,dy), 
+   ordem = {
+      (a,b):U for(a,b,U) in zip(
+         range(x1,x2,dx),
+         range(y1,y2,dy),
          sequencial
-      ) 
+      )
    }
 
    #a - inicio de um valor; b - final do valor; definindo
@@ -257,9 +257,9 @@ def tamanho(valor, unidade, sistema, acronomo=True):
      #retorna a string combinada com algumas
      #customizações importantes.
      if X >= base**a and X < base**b:
-         if X/(base**a) == 1: 
+         if X/(base**a) == 1:
             return string
-         else: 
+         else:
             return string+'\'s'
      ...
    else:
@@ -314,7 +314,8 @@ def tempo_detalhado(t):
 ...
 
 # decompõe em partes a "string de tempo".
-def decompoe(tempo_str):
+Decomposicao = {str: float, str:int, str:str}
+def decompoe(tempo_str: str) -> Decomposicao:
    if __debug__:
       # caractére por caractére da string.
       print(tuple(tempo_str.split()))
@@ -364,14 +365,14 @@ def arredonda_tempostr(tempo_str):
    inteiro = partes['inteiro']
    fracao = partes['fracao']
    peso = partes['peso']
-   
+
    if fracao > 0.5:
       inteiro += 1
 
    return "{} {}".format(inteiro, peso)
 ...
 
-# pega uma string já em forma legível 
+# pega uma string já em forma legível
 # e encurta seu acrônomo.
 def aplica_acronomo(tempo_str, arredonda):
    partes = decompoe(tempo_str)
@@ -420,7 +421,7 @@ def aplica_acronomo(tempo_str, arredonda):
 # transforma 'tempo_str' na forma
 # singular, se este for o caso.
 def transforma_no_singular(tempo_str):
-   # verificando se é o caso que estamos 
+   # verificando se é o caso que estamos
    # querendo consertar.
    partes = decompoe(tempo_str)
    e_caso_procurado = (
@@ -452,7 +453,7 @@ __all__ = [
 
 # testes unitários:
 if __name__ == "__main__":
-   from testes import executa_teste 
+   from testes import executa_teste
    from random import randint
 
    def testa_tempo_detalhado():
@@ -483,19 +484,6 @@ if __name__ == "__main__":
       print(tempo(27.83, arredonda=True))
    ...
 
-   def testa_casos_plurais_e_singulares():
-      # testando valores no plural e singular:
-      print(tempo(1_300))
-      print(tempo(1))
-      print(tempo(3_600))
-      print(tempo(3_631))
-      # testando com arredondamento.
-      print(tempo(1_300, arredonda=True))
-      print(tempo(1, arredonda=True))
-      print(tempo(3_600, arredonda=True))
-      print(tempo(3_631, arredonda=True))
-   ...
-
    def testa_arredonda_tempostr():
       exemplos = [
          "15.3 horas", "3.7 min", "18 segundos",
@@ -511,44 +499,21 @@ if __name__ == "__main__":
          31_899, 192, 1_938, 419_203,
          41_283, 3_912_822, 47,
          580_098_523, 92_378_223,
-         1_101_283_283, 5_823, 223/1000, 
+         1_101_283_283, 5_823, 223/1000,
          3/10**6, 28/10**9, 84/10**12
       ]
       for t in amostras:
          normal = tempo(t)
-         transforma = tempo(t, acronomo = True) 
+         transforma = tempo(t, acronomo = True)
          print("{} ==> {}".format(normal, transforma))
       ...
    ...
 
-   def teste_de_tempo_acronomos_e_arredondamentos():
-      amostras = [
-         31_899, 192, 1_938, 419_203,
-         41_283, 3_912_822, 47,
-         580_098_523, 92_378_223,
-         1_101_283_283, 5_823, 223/1000, 
-         3/10**6, 28/10**9, 84/10**12
-      ]
-      for t in amostras:
-         randomico = bool(randint(0, 1))
-         normal = tempo(t)
-         arredondado_sem_acronomo = tempo(t, arredonda=randomico)
-         encurtado = tempo(t, arredonda=randomico,acronomo=True) 
-         print(
-            normal, 
-            arredondado_sem_acronomo, 
-            encurtado, 
-            sep = " ==> "
-         )
-      ...
-   ...
 
    # executa tais funções ...
    #executa_teste(testa_tempo_detalhado)
    executa_teste(
-      testa_casos_plurais_e_singulares,
       testa_arredonda_tempostr,
       teste_de_tempo_com_acronomos,
-      teste_de_tempo_acronomos_e_arredondamentos
    )
 ...
