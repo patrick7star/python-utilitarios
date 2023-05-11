@@ -3,7 +3,7 @@
 import random
 import string
 import time
-from unittest import TestCase, main
+from unittest import (TestCase, main, skip)
 # importando módulo a testar...
 from sys import path
 path.append("../../src/")
@@ -94,6 +94,66 @@ class Tempo(TestCase):
          tempo(int(time.time())), end='\n'
       )
       self.assertTrue(True)
+   ...
+   @skip("teste ainda não finalizado")
+   def casosPluraisESingulares(self):
+      # testando valores no plural e singular:
+      print(tempo(1_300))
+      print(tempo(1))
+      print(tempo(3_600))
+      print(tempo(3_631))
+      # testando com arredondamento.
+      print(tempo(1_300, arredonda=True))
+      print(tempo(1, arredonda=True))
+      print(tempo(3_600, arredonda=True))
+      print(tempo(3_631, arredonda=True))
+   ...
+   @skip("teste ainda não finalizado")
+   def tempoAcronomosEArredondamentos(self):
+      from random import randint
+      entradas = [
+         31_899, 192,
+         1_938, 419_203,
+         41_283, 3_912_822, 47,
+         580_098_523, 92_378_223,
+         1_101_283_283, 5_823, 223/1000,
+      ]
+      # seguinte esquema: tupla, onde o primeiro
+      # é o resultado normal; o segundo é arrendodado
+      # sem encurtadomento; e o último ambas variações
+      # acima
+      saidas = [
+         ("8.86 horas", "8.86 horas", "9.0 h"),
+         ("3.2 minutos", "3.0 minutos", "3.0 min")
+      ]
+      for (s, t) in zip(saidas, entradas):
+         randomico = bool(randint(0, 1))
+         normal = tempo(t)
+         arredondado_sem_acronomo = tempo(t, arredonda=randomico)
+         encurtado = tempo(t, arredonda=randomico,acronomo=True)
+         self.assertEqual(normal, s[0])
+         self.assertEqual(arredondado_sem_acronomo, s[1])
+         self.assertEqual(encurtado, s[2])
+         print(
+            normal,
+            arredondado_sem_acronomo,
+            encurtado,
+            sep = " ==> "
+         )
+      ...
+      amostras = [ 3/10**6, 28/10**9, 84/10**12 ]
+      for t in amostras:
+         randomico = bool(randint(0, 1))
+         normal = tempo(t)
+         arredondado_sem_acronomo = tempo(t, arredonda=randomico)
+         encurtado = tempo(t, arredonda=randomico,acronomo=True)
+         print(
+            normal,
+            arredondado_sem_acronomo,
+            encurtado,
+            sep = " ==> "
+         )
+      ...
    ...
 ...
 
