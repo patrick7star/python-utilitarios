@@ -3,7 +3,7 @@
 import random
 import string
 import time
-from unittest import (TestCase, main, skip)
+from unittest import (TestCase, main, skip, TextTestRunner)
 # importando módulo a testar...
 from sys import path
 path.append("../../src/")
@@ -65,6 +65,8 @@ class Tamanho(TestCase):
          print("{:>18}  ou  {}".format(v1, v2))
       ...
    ...
+   def runTest(self):
+      self.AmostraAleatoria()
 ...
 
 class Tempo(TestCase):
@@ -155,7 +157,11 @@ class Tempo(TestCase):
          )
       ...
    ...
+   def runTest(self):
+      #self.variasEntradas()
+      self.tempoDoUnix()
 ...
 
 if __name__ == "__main__":
-   main(verbosity=2)
+   main(verbosity=0)
+...
