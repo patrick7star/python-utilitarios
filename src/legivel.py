@@ -5,6 +5,17 @@ de arquivos neles e etc.
 '''
 from enum import Enum, auto
 
+# o que será importado:
+__all__ = (
+   # enumeradores:
+   "Grandeza",
+   "Unidade",
+   # funções:
+   "tamanho",
+   "tempo"
+)
+
+
 # enum's:
 class Unidade(Enum):
    BYTE = auto()
@@ -14,6 +25,114 @@ class Unidade(Enum):
 class Grandeza(Enum):
    METRICO = auto()
    BINARIO = auto()
+...
+
+# dicionários dentre de dicionários.
+# o primeiro é uma string ligada a um
+# mapa, este por sua, vez, outras strings
+# ligadas a tupla, que tem vários pares
+# de tuplas dentro da mesma. Estas, represetam 
+# os pesos usado da função 'tamanho'.
+# Está aqui, simplesmente, porque o aninhamento
+# dentro da função está uma confusão, ou seja,
+# por legibilidade.
+PESOS = {
+   "byte": {
+      "metrico": (
+         ('B','byte'), ('KB','kilobyte'),
+         ('MB','megabyte'),('GB','gigabyte'),
+         ('TB','terabyte'),('PB','petabyte'),
+         ('EB','exabyte'),('ZB','zettabyte'),
+         ('YB','yottabyte')
+      ),
+      "binario": (
+         ('Bi','byte'),('KiB','kilobyte'),
+         ('MiB','megabyte'), ('GiB','gigabyte'),
+         ('TiB','terabyte'),('PiB','pebibyte'),
+         ('EiB','exibyte'),('ZiB','zebibyte'),
+         ('YiB','yobibyte')
+      )
+   },
+   "bit": {
+      "metrico": (
+         ('Bit','bit'),('Kbit','kilobit'),
+         ('Mbit','megabit'),('Gbit','gigabit'),
+         ('Tbit','terabit'),('Pbit','petabit'),
+         ('Ebit','exabit'),('Zbit','zettabit'),
+         ('Ybit','yottabit')
+      ),
+      "binario": (
+         ('Bit','bit'),('Kibit','kilobit'),
+         ('Mibit','megabit'),('Gibit','gigabit'),
+         ('Tibit','terabit'),('Pibit', 'pebibit'),
+         ('Eibit', 'exbibit'),('Zibit', 'zebibit'),
+         ('Yibit','yobibit')
+      )
+   }
+}
+
+def tamanho(valor, unidade: Unidade, sistema: Grandeza, 
+acronomo=True) -> str:
+   '''
+   Função que retorna um sufixo com a unidade
+   de informação traduzida do melhor modo possível
+   de acordo com a informação passada.
+   '''
+   if unidade == Unidade.BYTE and sistema == Grandeza.METRICO:
+      X = valor
+      sequencial = PESOS["byte"]["metrico"]
+      (x1,x2,dx),(y1,y2,dy) = (0,27,3), (3,30,3)
+      base = 10 #muda base
+   elif unidade == Unidade.BIT and sistema == Grandeza.METRICO:
+      X = 8 * valor
+      base = 10 #muda base
+      (x1,x2,dx),(y1,y2,dy) = (0,27,3), (3,30,3)
+      sequencial = PESOS["bit"]["metrico"]
+   elif unidade == Unidade.BIT and sistema == Grandeza.BINARIO:
+      X = 8 * valor
+      base = 2 #muda base
+      (x1,x2,dx),(y1,y2,dy) = (0,90,10),(10,100,10)
+      sequencial = PESOS["bit"]["binario"]
+   # este último é 'byte' e 'binário'.
+   else:
+      X = valor
+      base = 2 #muda base
+      (x1, x2, dx), (y1,y2,dy) = (0,90,10),(10,100,10)
+      sequencial = PESOS["byte"]["binario"]
+   ...
+
+   #dicionário  contendo todos intervalos de variação
+   #e seus respectivos múltiplos para deixar
+   #mais legível tal número.
+   ordem = {
+      (a,b):U for(a,b,U) in zip(
+         range(x1,x2,dx),
+         range(y1,y2,dy),
+         sequencial
+      )
+   }
+
+   #a - inicio de um valor; b - final do valor; definindo
+   #assim o intervalo. Percorrendo o dicionário sendo a
+   #chave uma tupla, com valor inicial e final.
+   for (a,b) in ordem:
+     #escolhe o melhor múltiplo para o valor.
+     multiplo = ordem[(a,b)][int(not acronomo)]
+     #forma uma string com o valor encolhido
+     #a uma escala legível.
+     string='{0:0.2f} {1}'.format(X/(base**a),multiplo)
+     #se estiver no intervalo existente, então
+     #retorna a string combinada com algumas
+     #customizações importantes.
+     if X >= base**a and X < base**b:
+         if X/(base**a) == 1:
+            return string
+         else:
+            return string+'\'s'
+     ...
+   else:
+      return string
+   ...
 ...
 
 # constantes com escalas de tempo, com suas
@@ -35,89 +154,12 @@ decada = 10 * ano
 seculo = 10 * decada
 milenio = 10 * seculo
 
-
-# *** *** *** funções *** *** ***
-
-#[código morto]
-def tamanho(valor, *, unidade, acronomo, sistema):
-   '''
-   Função que retorna um sufixo com a unidade
-   de informação traduzida do melhor modo possível
-   de acordo com a informação passada.
-   '''
-   if unidade.lower() == 'byte':
-      X = valor
-      if sistema.lower() == 'metrico':
-         sequencial = (('B','byte'), ('KB','kilobyte'),
-                      ('MB','megabyte'),('GB','gigabyte'),
-                      ('TB','terabyte'),('PB','petabyte'),
-                      ('EB','exabyte'),('ZB','zettabyte'),
-                      ('YB','yottabyte'))
-         (x1,x2,dx),(y1,y2,dy) = (0,27,3), (3,30,3)
-         base = 10 #muda base
-      else:
-         sequencial = (('Bi','byte'),('KiB','kilobyte'),
-                     ('MiB','megabyte'), ('GiB','gigabyte'),
-                     ('TiB','terabyte'),('PiB','pebibyte'),
-                     ('EiB','exibyte'),('ZiB','zebibyte'),
-                     ('YiB','yobibyte'))
-         (x1, x2, dx), (y1,y2,dy) = (0,90,10),(10,100,10)
-         base = 2 #muda base
-
-   elif unidade.lower() == 'bit':
-      X = 8 * valor
-      if sistema.lower() == 'metrico':
-         sequencial = (('Bit','bit'),('Kbit','kilobit'),
-                     ('Mbit','megabit'),('Gbit','gigabit'),
-                     ('Tbit','terabit'),('Pbit','petabit'),
-                     ('Ebit','exabit'),('Zbit','zettabit'),
-                     ('Ybit','yottabit'))
-         base = 10 #muda base
-         (x1,x2,dx),(y1,y2,dy) = (0,27,3), (3,30,3)
-      else:
-         sequencial = (('Bit','bit'),('Kibit','kilobit'),
-                     ('Mibit','megabit'),('Gibit','gigabit'),
-                     ('Tibit','terabit'),('Pibit', 'pebibit'),
-                     ('Eibit', 'exbibit'),('Zibit', 'zebibit'),
-                     ('Yibit','yobibit'))
-         base = 2 #muda base
-         (x1,x2,dx),(y1,y2,dy) = (0,90,10),(10,100,10)
-
-   #dicionário  contendo todos intervalos de variação
-   #e seus respectivos múltiplos para deixar
-   #mais legível tal número.
-   ordem = {
-      (a,b):U for(a,b,U) in zip(
-                                 range(x1,x2,dx),
-                                 range(y1,y2,dy),
-                                 sequencial
-                              )
-   }
-
-   #a - inicio de um valor; b - final do valor; definindo
-   #assim o intervalo. Percorrendo o dicionário sendo a
-   #chave uma tupla, com valor inicial e final.
-   for a,b in ordem:
-     #escolhe o melhor múltiplo para o valor.
-     multiplo = ordem[(a,b)][int(not acronomo)]
-     #forma uma string com o valor encolhido
-     #a uma escala legível.
-     string='{0:0.2f} {1}'.format(X/(base**a),multiplo)
-     #se estiver no intervalo existente, então
-     #retorna a string combinada com algumas
-     #customizações importantes.
-     if X >= base**a and X < base**b:
-         if X/(base**a) == 1: return string
-         else: return string+'\'s'
-   else: return string
-...
-
 # Representar o tempo de forma legível,
 # onde converte todos valores passados na
 # ordem de segundos para  minutos, horas
 # décadas, meses, milisegundos, nanosegundos
 # e etc...
-def converte(t):
+def converte(t: int) -> str:
    # múltiplos e sub-múltiplos:
    if t >= picoseg and t < nanoseg:
       grandeza = "picosegundos"
@@ -180,92 +222,6 @@ def tempo(segundos, arredonda=False, acronomo=False) -> str:
       return tempo_str
 ...
 
-def tamanho(valor, unidade, sistema, acronomo=True) -> str:
-   '''
-   Função que retorna um sufixo com a unidade
-   de informação traduzida do melhor modo possível
-   de acordo com a informação passada.
-   '''
-   if unidade == Unidade.BYTE and sistema == Grandeza.METRICO:
-      X = valor
-      sequencial = (
-         ('B','byte'), ('KB','kilobyte'),
-         ('MB','megabyte'),('GB','gigabyte'),
-         ('TB','terabyte'),('PB','petabyte'),
-         ('EB','exabyte'),('ZB','zettabyte'),
-         ('YB','yottabyte')
-      )
-      (x1,x2,dx),(y1,y2,dy) = (0,27,3), (3,30,3)
-      base = 10 #muda base
-   elif unidade == Unidade.BIT and sistema == Grandeza.METRICO:
-      X = 8 * valor
-      base = 10 #muda base
-      (x1,x2,dx),(y1,y2,dy) = (0,27,3), (3,30,3)
-      sequencial = (
-         ('Bit','bit'),('Kbit','kilobit'),
-         ('Mbit','megabit'),('Gbit','gigabit'),
-         ('Tbit','terabit'),('Pbit','petabit'),
-         ('Ebit','exabit'),('Zbit','zettabit'),
-         ('Ybit','yottabit')
-      )
-   elif unidade == Unidade.BIT and sistema == Grandeza.BINARIO:
-      X = 8 * valor
-      base = 2 #muda base
-      (x1,x2,dx),(y1,y2,dy) = (0,90,10),(10,100,10)
-      sequencial = (
-         ('Bit','bit'),('Kibit','kilobit'),
-         ('Mibit','megabit'),('Gibit','gigabit'),
-         ('Tibit','terabit'),('Pibit', 'pebibit'),
-         ('Eibit', 'exbibit'),('Zibit', 'zebibit'),
-         ('Yibit','yobibit')
-      )
-   #elif unidade == Unidade.BYTE and sistema == Grandeza.BINARIO:
-   else:
-      X = valor
-      base = 2 #muda base
-      (x1, x2, dx), (y1,y2,dy) = (0,90,10),(10,100,10)
-      sequencial = (
-         ('Bi','byte'),('KiB','kilobyte'),
-         ('MiB','megabyte'), ('GiB','gigabyte'),
-         ('TiB','terabyte'),('PiB','pebibyte'),
-         ('EiB','exibyte'),('ZiB','zebibyte'),
-         ('YiB','yobibyte')
-      )
-   ...
-
-   #dicionário  contendo todos intervalos de variação
-   #e seus respectivos múltiplos para deixar
-   #mais legível tal número.
-   ordem = {
-      (a,b):U for(a,b,U) in zip(
-         range(x1,x2,dx),
-         range(y1,y2,dy),
-         sequencial
-      )
-   }
-
-   #a - inicio de um valor; b - final do valor; definindo
-   #assim o intervalo. Percorrendo o dicionário sendo a
-   #chave uma tupla, com valor inicial e final.
-   for (a,b) in ordem:
-     #escolhe o melhor múltiplo para o valor.
-     multiplo = ordem[(a,b)][int(not acronomo)]
-     #forma uma string com o valor encolhido
-     #a uma escala legível.
-     string='{0:0.2f} {1}'.format(X/(base**a),multiplo)
-     #se estiver no intervalo existente, então
-     #retorna a string combinada com algumas
-     #customizações importantes.
-     if X >= base**a and X < base**b:
-         if X/(base**a) == 1:
-            return string
-         else:
-            return string+'\'s'
-     ...
-   else:
-      return string
-   ...
-...
 
 # mostra o tempo de forma mais detalhada:
 def tempo_detalhado(t):
@@ -313,8 +269,8 @@ def tempo_detalhado(t):
    )
 ...
 
-# decompõe em partes a "string de tempo".
 Decomposicao = {str: float, str:int, str:str}
+# decompõe em partes a "string de tempo".
 def decompoe(tempo_str: str) -> Decomposicao:
    if __debug__:
       # caractére por caractére da string.
@@ -444,19 +400,13 @@ def transforma_no_singular(tempo_str):
 ...
 
 
-__all__ = [
-   "Grandeza",
-   "Unidade",
-   "tamanho",
-   "tempo"
-]
+#from testes import executa_teste
+from random import randint
+from unittest import (TestCase, main)
 
 # testes unitários:
-if __name__ == "__main__":
-   from testes import executa_teste
-   from random import randint
-
-   def testa_tempo_detalhado():
+class Funcoes(TestCase):
+   def tempoDetalhado(self):
       # valor e peso filtrado:
       string = tempo_detalhado(1_329)
       print(decompoe(string))
@@ -467,13 +417,13 @@ if __name__ == "__main__":
       # testes aleatorios do novo conversor:
       traducao = tempo_detalhado(1166832000)
       print(traducao)
-      assert "3 décadas 7 anos" == traducao
+      self.assertEqual("3 décadas 7 anos", traducao)
       traducao_simples = tempo(1166832000)
       print(traducao_simples, "==>", traducao)
       # outro ...
       traducao = tempo_detalhado(16398720000)
       print(traducao)
-      assert "5 séculos 2 décadas" == traducao
+      self.assertEqual("5 séculos 2 décadas", traducao)
       traducao_simples = tempo(16398720000)
       print(traducao_simples, "==>", traducao)
 
@@ -483,8 +433,7 @@ if __name__ == "__main__":
       print(tempo(37.3, arredonda=True))
       print(tempo(27.83, arredonda=True))
    ...
-
-   def testa_arredonda_tempostr():
+   def arredondaTempostr(self):
       exemplos = [
          "15.3 horas", "3.7 min", "18 segundos",
          "57.8 dias", "7.8 meses", "14.2 minutos",
@@ -493,8 +442,7 @@ if __name__ == "__main__":
       for ts in exemplos:
          print(ts, arredonda_tempostr(ts), sep=" ==> ")
    ...
-
-   def teste_de_tempo_com_acronomos():
+   def tempoComAcronomos(self):
       amostras = [
          31_899, 192, 1_938, 419_203,
          41_283, 3_912_822, 47,
@@ -508,12 +456,10 @@ if __name__ == "__main__":
          print("{} ==> {}".format(normal, transforma))
       ...
    ...
+   def runTest(self):
+      self.tempoDetalhado()
+...
 
-
-   # executa tais funções ...
-   #executa_teste(testa_tempo_detalhado)
-   executa_teste(
-      testa_arredonda_tempostr,
-      teste_de_tempo_com_acronomos,
-   )
+if __name__ == "__main__":
+   main()
 ...
