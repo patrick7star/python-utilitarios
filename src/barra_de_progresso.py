@@ -15,8 +15,19 @@ TEXTO_MOLDE = "{0:>{espaco}} de {1}: [{2}]{3:>5.1f}%"
 TEXTO_MOLDE_I = "{0}/{1}: [{2}]{3:>5.1f}%"
 VAZIO = '.'
 
+# o que será importado:
+__all__ = [
+   "PorcentagemError",
+   "NaoCabeNaTelaError",
+   "progresso",
+   "FimDoProgressoError",
+   "progresso_rotulo",
+   "ProgressoPercentual",
+   "ProgressoTemporal"
+]
+
 # minhas próprias classe-exeções:
-class PorcentagemError(ValueError): 
+class PorcentagemError(ValueError):
    def __str__(self):
       return "tem que ser um valor(inclusivo) entre 0 e 1"
 ...
@@ -31,8 +42,8 @@ class NaoCabeNaTelaError(Exception):
       larguraTERM = int(get_terminal_size().columns)
       X = abs(self.largura - larguraTERM)
       return (
-      """a barra excede a tela, por favor 
-      \rredimensione-a em %i caractéres para 
+      """a barra excede a tela, por favor
+      \rredimensione-a em %i caractéres para
       \rque possa executar novamentesem distorções."""
       % X)
    ...
@@ -49,28 +60,28 @@ class Rotatoria(threading.Thread):
       espaco = ' ' * 2 # espaços em branco.
       # concatena espaços para fazer uma separação
       # visual no momento de exibição. A variável
-      # é uma lista contendo os caractéres da 
+      # é uma lista contendo os caractéres da
       # string que foi passada.
       self.corrente = list(espaco+texto+espaco)
       self.capacidade = maximo
       threading.Thread.__init__(self)
 
    def run(self):
-      """ implementação que será executada ao 
+      """ implementação que será executada ao
       iniciar uma thread. Aqui, pegará o último
       elemento da lista e o removerá, posteriormente
       colocará-lo no começo da lista. Isto tudo
-      levando um terço de segundo, de modo 
+      levando um terço de segundo, de modo
       proposital. """
       for k in range(48):
          sleep(0.3)  # aguarda um 1/3 de segundo para deslocar...
-         # remove à última posição e a coloca na 
+         # remove à última posição e a coloca na
          # primeira parte.
          char = self.corrente.pop()
          self.corrente.insert(0,char)
 
    def __repr__(self):
-      """ quando 'print' a instância, pega 
+      """ quando 'print' a instância, pega
       a lista, na mesma ordem, e a transforma
       numa string. """
       texto = ""
@@ -86,7 +97,7 @@ class TextoMovimento(Rotatoria):
       # executa construtor da super classe.
       super().__init__(texto, maximo)
       # razão da quantidade feita, pela quantidade
-      # total a ser feita; começa em zero por 
+      # total a ser feita; começa em zero por
       # instânciar tal classe.
       self.progresso = 0
       # texto original passado.
@@ -96,7 +107,7 @@ class TextoMovimento(Rotatoria):
       # executa o loop até que se atinga 100%.
       while self.progresso < 1.00:
          sleep(0.3)  # aguarda um 1/3 de segundo para deslocar...
-         # remove à última posição e a coloca na 
+         # remove à última posição e a coloca na
          # primeira parte.
          bloqueador.acquire()
          char = self.corrente.pop()
@@ -132,9 +143,9 @@ def constroi_barra(percentagem, simbolo, capacidade):
 def progresso(qtd_atual, qtd_total, dados=False, redimensiona=False):
    """
    Retorna a barra de progresso toda personalizada.
-   Há dois modos, a que contam numéricamente, e a 
+   Há dois modos, a que contam numéricamente, e a
    que leva em consideração que está-se trabalhando
-   com grandezas digitais. Também aceita um valor 
+   com grandezas digitais. Também aceita um valor
    booleano para 'redimesionalidade', assim é possível
    extender a quantia de barras até o fim da tela
    do terminal.
@@ -167,22 +178,22 @@ def progresso(qtd_atual, qtd_total, dados=False, redimensiona=False):
          barra = constroi_barra(percentagem, 'o', comprimento)
       except PorcentagemError:
          barra = constroi_barra(1.0, '#', 50)
-         # conversões os valores de bytes para 
+         # conversões os valores de bytes para
          # legendas legíveis.
          str_atual = tamanho(qtd_atual,**encurta)
          str_total = tamanho(qtd_total,**encurta)
          encurta = (str_total, str_total, barra, 100)
       else:
-         # conversões os valores de bytes para 
+         # conversões os valores de bytes para
          # legendas legíveis.
          str_atual = tamanho(qtd_atual,**encurta)
          str_total = tamanho(qtd_total,**encurta)
          encurta = (str_atual, str_total, barra, percentagem*100)
       ...
-      
+
       # retorno de string baseado na percentagem.
       if percentagem == 1:
-         # verifica se o texto não excede a largura da 
+         # verifica se o texto não excede a largura da
          # tela de exibição, se sim, "executa" um erro.
          L = len(TEXTO_MOLDE_I.format(*encurta, espaco=espacamento))
          if L+1 > largura:
@@ -295,9 +306,9 @@ def computa_qtd_de_barras(qtd_atual, qtd_total):
    # dimensão da tela para ver se tal barra cabe.
    largura = get_terminal_size().columns
 
-   # o que sobra para preencher com a barra. O que é 
+   # o que sobra para preencher com a barra. O que é
    # contabilizado aqui é, o demais textos e símbolo
-   # da barra de progresso inteira; os espaços para 
+   # da barra de progresso inteira; os espaços para
    # números que crescem; a quantia de algarismos de
    # cada número; a quantia de algarismos da porcentagem
    # que também aparece. A diferença entre isto e, a largura
@@ -349,7 +360,7 @@ class ProgressoPercentual():
       # se tiver "transbordado" mais de 0,5%,
       # então a string real será retornada.
       if atingiu_total or atingiu_limite:
-         # terceirizando tarefa de criar uma 
+         # terceirizando tarefa de criar uma
          # barra em sí.
          return progresso(self.qtd_atual, self.qtd_total)
       else:
@@ -412,7 +423,7 @@ class ProgressoTemporal():
       diferenca = abs(self._qtd_chamadas - self._total)
       if self._esgotado and  diferenca > 5:
          raise FimDoProgressoError()
-      # computando chamadas para lançar 
+      # computando chamadas para lançar
       # erro em chamadas excessivas.
       self._qtd_chamadas += 1
       if self._permitido or self._esgotado:
@@ -424,15 +435,4 @@ class ProgressoTemporal():
          return ""
    ...
 ...
-
-# o que será importado:
-__all__ = [
-   "PorcentagemError",
-   "NaoCabeNaTelaError",
-   "progresso",
-   "FimDoProgressoError",
-   "progresso_rotulo",
-   "ProgressoPercentual",
-   "ProgressoTemporal"
-]
 

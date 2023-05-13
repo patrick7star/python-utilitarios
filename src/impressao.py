@@ -10,7 +10,10 @@ from arvore import matriciar_string
 from copy import deepcopy
 from shutil import get_terminal_size
 import array as Array
+from unittest import (TestCase, main)
 
+# o que será importado:
+__all__ = ["listagem", "escada", "silhueta"]
 
 def listagem(strings):
    # largura do terminal.
@@ -23,7 +26,7 @@ def listagem(strings):
    (contador, espaco, linhas) = (1, 2, [])
 
    # entradas por linha.
-   total_na_linha = (largura-1) // (maior+espaco) 
+   total_na_linha = (largura-1) // (maior+espaco)
    # quantos entradas modificadas serão
    # listadas ao todo.
    total = maior * len(strings)
@@ -35,7 +38,7 @@ def listagem(strings):
       except IndexError:
          break
       # cria uma string baseado na maior
-      # entrada, preenchendo os vácuos 
+      # entrada, preenchendo os vácuos
       # restantes com "espaço vázio".
       comprimento = len(entrada)
       diferenca = abs(maior-comprimento)
@@ -49,7 +52,7 @@ def listagem(strings):
       total -=1
       contador += 1
    ...
-   
+
    return "".join(linhas)
 ...
 
@@ -58,14 +61,14 @@ class Pilha:
        self._array = Array.array('B')
        self._qtd = 0
     ...
-    
+
     def topo(self):
        raise Exception("[ERROR]não implementada ainda!")
-    
+
     def empilha(self, valor):
        self._array.append(valor)
        self._qtd += 1
-    
+
     def desempilha(self):
        if self.vazia():
            raise Exception("[PILHA VÁZIA]")
@@ -73,7 +76,7 @@ class Pilha:
        self._qtd -= 1
        return remocao
     ...
-    
+
     def vazia(self):
        return len(self._array) == 0
 ...
@@ -85,14 +88,14 @@ def escada(strings):
    linhas = []
    acumulado = 0
    pilha_de_recuos = Pilha()
-   
+
    for entrada in strings:
       recuo = " " * acumulado
       comprimento = len(entrada)
       linhas.append(recuo)
       linhas.append(entrada)
       linhas.append('\n')
-      
+
       if (comprimento + acumulado < largura-5
       and  not colidiu_na_parede):
          meio_str = comprimento //2
@@ -106,7 +109,7 @@ def escada(strings):
             colidiu_na_parede = False
       ...
    ...
-   
+
    return "".join(linhas)
 ...
 
@@ -116,59 +119,48 @@ def silhueta(string):
    outra = deepcopy(matriz)
    # lista para concatenação.
    celulas = Array.array('u')
-   
+
    for i in range(m):
       for j in range(n):
          proposicao = (
             (not matriz[i][j].isspace()) and
             matriz[i][j]!='¨'
          )
-         if proposicao: 
+         if proposicao:
             outra[i][j] = '~'
-         elif matriz[i][j] == '¨': 
+         elif matriz[i][j] == '¨':
             outra[i][j] = ' '
       ...
-   ... 
-   
+   ...
+
    for i in range(m):
-      for j in range(n): 
+      for j in range(n):
          celulas.append(outra[i][j])
       celulas.append('\n')
    ...
    return "".join(celulas)
 ...
 
-# excluindo resto de módulos importados.
-#del deepcopy
-#del matriciar_string
-
-
-# o que será importado:
-__all__ = ["listagem", "escada", "silhueta"]
-
-if __name__ == "__main__":
-    array = [
+class Funcoes(TestCase):
+   array = [
        "pasta1", "pasta 2", "paste III",
        "configuração.txt", "nada_de_mais.dat",
        "total_porno_aqui.jpg", "arquivosinúteis.txt",
-       "arquivo_um.cc", "arquivo_sem_uso", 
+       "arquivo_um.cc", "arquivo_sem_uso",
        "diretório_qualquer", "rising house",
        "new horleans"
-    ]
-    
-    def testa_listagem():
-       print(listagem(array))
-    ...
-    
-    def testa_escada():
-       for e in ["memes", "floresta_de_dirs",
-       "pasta vázia", "arquivos-binários", 
-       "músicas instrumentas"]:
-           array.append(e)
-       print(escada(array))
-    ...
-    
-    def testa_silhueta():
+   ]
+   def listagem(self):
+       print(listagem(Funcoes.array))
+   def escada(self):
+      Funcoes.array.extend(
+         ["memes", "floresta_de_dirs",
+         "pasta vázia", "arquivos-binários",
+         "músicas instrumentas"]
+      )
+      print(escada(Funcoes.array))
+   ...
+   def silhueta(self):
        # apresentando silhueta.
        string = """rosas são vermelhas
        \rvioletas são azuis
@@ -195,10 +187,7 @@ if __name__ == "__main__":
        \rnão molhe mais o meu amoor assim'''
        print(poesia)
        print(silhueta(poesia))
-    ...
-    
-    from testes import executa_teste
-    executa_teste(testa_listagem)
-    executa_teste(testa_escada)
-    executa_teste(testa_silhueta)
-...
+   ...
+
+if __name__ == "__main__":
+   main()
