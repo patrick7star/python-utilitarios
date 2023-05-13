@@ -20,23 +20,22 @@ from os import get_terminal_size
 # total a cumprir padronizado.
 TOTAL = 500_000
 
-
 def progressoBasico():
-   total = TOTAL//2, 1
+   total = 100
    # sintaxe padrão:
    try:
       # testando a versão comum.
-      for i in range(TOTAL //2):
-         print('\r', progresso(i + 1, TOTAL//2),end='')
+      for i in range(total):
+         print('\r', progresso(i + 1, total),end='')
+         sleep(1/2) # 500 ms
       # testando o com dados.
-      for j in range(TOTAL//2):
-         barra = progresso(j + 1, TOTAL//2, dados=True)
+      for j in range(total*10):
+         barra = progresso(j + 1, total, dados=True)
          print( '\r', barra, end='')
+         sleep(1/100) # 100 ms.
       ...
    except FimDoProgressoError as E:
-      print("\nnão é possível mais continuar preenchendo a barra.")
-      print("aqui é o resultado final:\n%s\n"%E.progresso)
-   ...
+      print("\nprogresso finalizado.")
 ...
 
 # temporizador.
@@ -53,7 +52,7 @@ def temporizador(T):
 ...
 
 def progressoRotulo():
-   titulo = "The Conjuring 3: The End is Coming.avi" 
+   titulo = "The Conjuring 3: The End is Coming.avi"
    fim = 10**4
    for x in range(1, fim+1):
       print('\r', progresso_rotulo(titulo, x, fim, True), end='')
@@ -136,8 +135,8 @@ FunctionTestCase(
    description = """
       \rUm tipo de progresso, na estrutura do básico,
       \rporém com um rótulo(uma string passada como
-      \rargumento) em movimento, ele tipo se move 
-      \rà cada 1,5seg. 
+      \rargumento) em movimento, ele tipo se move
+      \rà cada 1,5seg.
    """
 )
 FunctionTestCase(progressoRedimensionavel)
