@@ -459,6 +459,45 @@ class Funcoes(TestCase):
    def runTest(self):
       self.tempoDetalhado()
 ...
+def valor_grande_legivel(numero: int) -> str:
+   if numero >= 1_000 and numero < 1_000_000:
+      return "{:0.1f} mil".format(numero / 1_000)
+   elif  pow(10, 6) <= numero < pow(10, 9):
+      return "{:0.1f} mi".format(numero / pow(10, 6))
+   elif pow(10, 9) <= numero < pow(10, 12):
+      return "{:0.1f} bi".format(numero / pow(10, 9))
+   elif pow(10, 12) <= numero < pow(10, 15):
+      return "{:0.1f} ti".format(numero / pow(10, 9))
+   else:
+      return str(numero)
+...
+
+def valor_grande_bem_formatado(numero: int) -> str:
+   if numero < 1000:
+      return str(numero)
+   else:
+      forma_inicial = str(numero)
+      resto = len(forma_inicial) % 3
+      forma_inicial = ''.join(['0'*(3 - resto), forma_inicial])
+      # fila para armazenar caractéres temporiamente,
+      # e string para concatenação.
+      fila = []; numero_str = ""
+      
+      for c in list(forma_inicial):
+         fila.append(c)
+         # deseja numa classe a formação dos três algs.
+         if len(fila) == 3:
+            numero_str += ' '
+            while len(fila) > 0:
+               numero_str += fila.pop(0)
+         ...
+      ...
+      numero_str += ' '
+      while len(fila) > 0:
+         numero_str += fila.pop(0)
+      return numero_str.lstrip('0 ')
+   ...
+...
 
 if __name__ == "__main__":
    main()
