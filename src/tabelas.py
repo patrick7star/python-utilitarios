@@ -10,10 +10,14 @@ from copy import deepcopy
 from array import array as Array
 
 # módulos auxiliares:
-from tabelas_utilitarios import reveste, TabelaStrMatriz
+from tabelas_utilitarios import (reveste, TabelaStrMatriz)
 from tabelas_variaveis import *
 
-class Coluna():
+# o que será exportado?
+__all__ = ["Coluna", "forma_tabela"]
+
+
+class Coluna:
    def __init__(self, rotulo, array):
       self._rol = array
       self._nome = rotulo
@@ -206,7 +210,6 @@ def forma_tabela(C1, C2):
    ...
 ...
 
-__all__ = ["Coluna", "forma_tabela"]
 
 # testes unitários:
 if __name__ == "__main__":

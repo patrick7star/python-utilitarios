@@ -23,7 +23,8 @@ class TabelaStrMatriz(MatrizTexto):
       k = 0
       for (y, linha) in enumerate(tabela_str.split('\n')):
          for (x, char) in enumerate(linha):
-            self.altera(y % altura, x % largura, char)
+            #self.altera(y % altura, x % largura, char)
+            self[y][x] = char
          ...
       ...
    ...
@@ -311,7 +312,8 @@ def reveste(tabela_str):
       esta_vazio = len(iterador) == 0
       while (not esta_vazio):
          (y, x, char) = iterador.pop()
-         tabela_str.altera(y, x, char)
+         #tabela_str.altera(y, x, char)
+         tabela_str[y][x] = char
          # atualizando valor lógico ...
          esta_vazio = len(iterador) == 0
       ...
