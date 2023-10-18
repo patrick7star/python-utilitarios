@@ -217,7 +217,7 @@ class TabelaBooleana:
          raise ValueError("tal '{}' não existe.".format(nome))
    ...
 
-   def guarda(self) -> None:
+   def salva(self) -> None:
       "faz operação de gravação automaticamente, na verdade força uma"
       # grava todas variáveis criadas ou atualizadas em disco.
       grava_em_disco(self.tabelas)

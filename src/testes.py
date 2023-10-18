@@ -73,6 +73,26 @@ def executa_teste(*funcoes):
    ...
 ...
 
+from pathlib import Path
+from os import (rename, getenv, setenv, environ)
+
+def esquiva_alvo(caminho: Path) -> None:
+   if (caminho.exists()):
+      # gravando nome original.
+      environ["ORIGINAL_EA"] = str(caminho)
+      # renomeando(apenas adicionando um sufixo).
+      novo_nome = str(caminho) + ".original"
+      rename(caminho, novo_nome)
+      # grava este também em ambiente.
+      environ["NOVO_EA"] = novo_nome
+   else:
+      # renomea de volta.
+      rename(getenv("NOVO_EA"), getenv("ORIGINAL_EA")) 
+      # retirando tais variáveis...
+      unsetenv("NOVO_EA"); unsetenv("ORIGINAL_EA")
+   ...
+...
+
 # o que será importado ...
 __all__ = ["executa_teste"]
 

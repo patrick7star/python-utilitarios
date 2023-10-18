@@ -2,19 +2,35 @@
 """
  Ferramentas muitos úteis para vários códigos,
 que são um Temporizador e um Cronômetro. Para
-quem não conhece nenhuma, a primeira faz uma 
+quem não conhece nenhuma, a primeira faz uma
 contagem regressiva; já a segunda conta por
 tempo "indeterminados", porém possível de ter
 marcos(registros arbitrários) durante a contagem.
 """
-from time import time
+from time import (time, time_ns)
 from datetime import timedelta
 
-__all__ = ["TempoEsgotadoError", "Temporizador", "Cronometro"]
+__all__ = [
+   "CronometroParadoError",
+   "TempoEsgotadoError",
+   "Temporizador",
+   "Cronometro"
+]
 
 class TempoEsgotadoError(Exception):
    def __str__(self):
       return "O temporizador não pode atualizar mais."
+...
+
+class CronometroParadoError(Exception):
+   def __init__(self, msg_erro):
+      self.mensagem = msg_erro
+   def __str__(self):
+      if msg_erro != "":
+         return "O cronômetro foi parado."
+      else:
+         return self.mensagem
+   ...
 ...
 
 class Temporizador:
@@ -31,7 +47,7 @@ class Temporizador:
             )
             raise ValueError(mensagem_erro)
          ...
-         # segundos registrado até agora de uma 
+         # segundos registrado até agora de uma
          # data inicial marcada, convertido a um
          # valor inteiro.
          self._limite = tempo
@@ -62,11 +78,11 @@ class Temporizador:
       tenha sido esgotado. Se houver insistência em
       chamar mesmo assim, uma exceção será levantada.
       """
-      if self._atual >= self._limite: 
+      if self._atual >= self._limite:
          if self._ciclos > 5:
             # chamar um bocado de vezes um Temporizador
             # esgotado, apenas retorna um erro. Se quer
-            # reutiliza-lô chame a função específica 
+            # reutiliza-lô chame a função específica
             # para isso.
             raise TempoEsgotadoError()
          else:
@@ -155,7 +171,193 @@ class Temporizador:
    ...
 ...
 
-class Cronometro: pass
+from legivel import tempo
+import statistics
+
+class Cronometro:
+   """
+   Cronômetro, contador de tempo. Opera na faixa dos nanosegundos.
+   Todos retornos aqui são na grandeza de segundos. Computa tanto
+   o tempo desde o começo, como também o decorrido desde à última
+   marcação; computa também a média de variação das marcações.
+   """
+   # contabilização das instâncias deste tipo de dado.
+   total = 0
+
+   def __init__(self) -> None:
+      # marca o ínicio da estrutura.
+      self.inicio: int = time_ns()
+      # registra marcos durante a contagem, e os salvas. O primeiro
+      # valor, será o que acabou de ser marcado.
+      self.registros: [int] = [self.inicio]
+      # contabilização das instância...
+      Cronometro.total += 1
+      # muda estado do cronômetro para terminado, equivalente ao
+      # 'esgotado' do Temporizador. Também, pega o último registro
+      # de tempo antes de parar.
+      self.terminado: bool = False
+      self.ultimo_registro: int = None
+   ...
+
+   def marca(self) -> float:
+      if self.terminado:
+         msg_error = "não marca mais, já foi 'esgotado'"
+         raise CronometroParadoError(msg_error)
+
+      # calculando o tempo decorrido em segundos.
+      fim = time_ns()
+      decorrido = (fim - self.inicio) * pow(10, -9)
+      # adicionando 'marco' na fila.
+      self.registros.append(fim)
+
+      # decorrido até o momento, o mesmo que adicionado a fila.
+      return decorrido
+   ...
+
+   def variacao(self) -> int:
+      "retorna variação desde o último 'marco' realizado em nanosegundos"
+      t = len(self.registros) - 1
+      ultimo = self.registros[t]
+      return (ultimo - inicio)
+   ...
+
+   def media(self) -> float:
+      "computa a média aritmética das variações entre os marcos"
+      return statistics.mean(
+         abs(a - b) * pow(10, -9)
+         for (a, b) in zip (
+            self.registros[1:],
+            self.registros[:-1]
+         )
+      )
+   ...
+
+   def __str__(self) -> str:
+      if self.terminado:
+         decorrido_ns = abs(self.inicio - self.ultimo_registro)
+      else:
+         decorrido_ns = abs(self.inicio - time_ns())
+
+      # converte o tempo para segundos.
+      segundos = decorrido_ns * pow(10, -9)
+
+      # retira a parte fracional de valores muitos pequenos, digo,
+      # até os minutos.
+      if segundos < 60:
+         tempo_str = tempo(
+            segundos,
+            acronomo = True,
+            arredonda = True
+         )
+      else:
+         tempo_str = tempo(segundos, acronomo = True)
+      if self.terminado:
+         return "{}(terminou)".format(tempo_str)
+      else:
+         return tempo_str
+
+   def __repr__(self) -> str:
+      return self.__str__()
+
+   def __del__(self):
+      # removendo está instância da contagem.
+      Cronometro.total -= 1
+
+   def parar(self):
+      """
+      para a contagem do tempo de vez, assim não é possível fazer
+      mais 'marcações', e a variação é fixa, assim també fica a
+      média.
+      """
+      self.terminado = True
+      self.ultimo_registro = time_ns()
+   ...
+
+   def listar(self) -> None:
+      "funciona na faixa dos nanosegudos até 24 horas"
+      if self.registros == []:
+         print("sem qualquer 'marco'.")
+         return None
+
+      for marco in self.registros:
+         decorrido = abs(marco - self.inicio) * pow(10, -9)
+
+         if decorrido == 0:
+            continue
+
+         tempo_str = tempo(decorrido, acronomo=True, arredonda=True)
+         print("[{:^10}]".format(tempo_str))
+      ...
+   ...
+
+   def __lt__(self, cronometro) -> bool:
+      """
+      verifica se este 'cronômetro' tem um tempo decorrido menor que
+      o passado.
+      """
+      # para teste com cronômetros.
+      if isinstance(cronometro, Cronometro):
+         # o tempo decorrido de ambos cronômetros.
+         d = cronometro.marca()
+         D = self.marca()
+
+         # removendo os registros deles pelo método 'marca', já que
+         # internamente ele adiciona o último registro feito no fim
+         # da 'deque' interna.
+         self.registros.pop(); cronometro.registros.pop()
+
+         return  D <  d
+      # teste com tipos inteiros ou decimais represetando segundos.
+      elif isinstance(cronometro, int | float):
+         segundos = cronometro
+         instancia_seg = self.marca()
+
+         # removendo novamente registro de 'marco' adicionado
+         # automaticamente pelo método usado.
+         self.registros.pop()
+
+         return instancia_seg < segundos
+      else:
+         raise ValueError("o valor passado não é um Cronômetro")
+   ...
+
+   def __eq__(self, cronometro) -> bool:
+      """
+      mede a igualdade de tempos decorridos entre este cronômetro, e
+      outro, ou um tempo númerico, decimal ou inteiro, dado nas
+      de segundos.
+      """
+      if isinstance(cronometro, Cronometro):
+         d = cronometro.marca()
+         D = self.marca()
+         self.registros.pop(); cronometro.registros.pop()
+         # com frações extramentes pequenas, é possível que uma
+         # pequeníssima parte faça a diferença, então a representação
+         # visual faz a diferença na igualação.
+         return  D == d or (str(self) == str(cronometro))
+      elif isinstance(cronometro, int | float):
+         segundos_instancia = self.marca()
+         segundos = cronometro
+         self.registros.pop()
+         # cinco porcento de error permitido.
+         if segundos > segundos_instancia:
+            return (segundos_instancia / segundos) < 0.05
+         else:
+            return (segundos / segundos_instancia) < 0.05
+      else:
+         raise ValueError("o valor passado não é um Cronômetro")
+   ...
+
+   def __gt__(self, cronometro) -> bool:
+      """
+      verifica se este 'cronômetro' contou um tempo maior,
+      que o cronômetro passado.
+      """
+      # o modo de fazer isso é, verificar se não é menor, ou
+      # igual ao tempo percorrido, logo só pode ser maior.
+      return not(self < cronometro or self == cronometro)
+   ...
+...
 
 def stringtime_to_segundos(string):
    caracteres = []
@@ -194,6 +396,7 @@ def stringtime_to_segundos(string):
 
 from unittest import (main, TestCase)
 from time import sleep
+from random import (randint, choice)
 
 class TemporizadorTeste(TestCase):
    def verificaEsgotamento(self):
@@ -256,17 +459,105 @@ class TemporizadorTeste(TestCase):
    ...
 ...
 
+def pausa_de_miliseg_ou_seg():
+   if choice([True, False]):
+      tempo_aleatorio = randint(1, 10) / 10
+   else:
+      tempo_aleatorio = randint(1, 100) / 100
+   sleep(tempo_aleatorio)
+   return tempo(tempo_aleatorio)
+...
+
+class CronometroTeste(TestCase):
+   def exemploSimples(self):
+      c = Cronometro()
+      for _ in range(10):
+         print("registro do tempo:", c)
+         print("pausa de", pausa_de_miliseg_ou_seg())
+      ...
+
+      pausa_de_miliseg_ou_seg()
+      print("registro do tempo:", c)
+      pausa_de_miliseg_ou_seg()
+      print("registro do tempo:", c)
+
+      c.parar()
+
+      print("registro do tempo:", c)
+   ...
+
+   def mediaDeRegistros(self):
+      c = Cronometro()
+      for _ in range(105):
+         print("pausa de", pausa_de_miliseg_ou_seg())
+         c.marca()
+      ...
+
+      M = c.media()
+      print("valor:", M)
+      print("média: {}".format(tempo(c.media(), arredonda=True)))
+
+      c.parar()
+      print("registro do tempo:", c)
+   ...
+
+   def listagemDosMarcos(self):
+      c = Cronometro()
+      for _ in range(50):
+         pausa_de_miliseg_ou_seg()
+         c.marca()
+         print(".", end="")
+      ...
+
+      print("\npronto!", end="\n\n")
+      c.listar()
+   ...
+
+   def comparacaoEntreCronometros(self):
+      (c, C) = (Cronometro(), Cronometro())
+
+      self.assertEqual(Cronometro.total, 2)
+
+      for _ in range(7):
+         pausa_de_miliseg_ou_seg()
+         self.assertEqual(c, C)
+         print(".", end="")
+      ...
+      print("\tpronto!", end="\n\n")
+
+      del C, c
+      # verificando contagem de instâncias ...
+      self.assertEqual(Cronometro.total, 0)
+
+      # reiniciando, e começando novamente, para testa agora
+      # não igualdade entre eles.
+      c = Cronometro()
+      pausa_de_miliseg_ou_seg()
+      C = Cronometro()
+      self.assertTrue(c > C)
+      self.assertTrue(C < c)
+      print("c(%s) > C(%s)" % (c, C))
+
+      # testando inequality com outros tipos de dados.
+      print("c(%s) < 3 seg" % c)
+      self.assertTrue(c < 3)
+      pausa_de_miliseg_ou_seg()
+      print("c(%s) < 16.8 seg" % c)
+      self.assertTrue(c < 16.8)
+   ...
+...
+
 
 ''' testes obsoletos.
 if __name__ == "__main__":
    import utilitarios.src.testes as UT
-   from time import sleep 
+   from time import sleep
 
    def strtime_to_seg():
       argumentos = (
          "15min", "38 segundos", "3.5 horas",
          "15.0 min", "38 seg", "3h", "4.53 h",
-         "5.8 min    ", "   89     segundos", 
+         "5.8 min    ", "   89     segundos",
          "3      hfak",  " 12   dios",
       )
       for arg in argumentos:
@@ -290,7 +581,7 @@ if __name__ == "__main__":
 
       # induzindo ao erro.
       for _ in range(15):
-         try: 
+         try:
             print("resultado: ", t())
          except TempoEsgotadoError():
             print("induzido com sucesso!")
@@ -314,4 +605,4 @@ if __name__ == "__main__":
 '''
 
 if __name__ == "__main__":
-   main()
+   main(verbosity=2)

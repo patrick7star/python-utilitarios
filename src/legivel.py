@@ -272,10 +272,6 @@ def tempo_detalhado(t):
 Decomposicao = {str: float, str:int, str:str}
 # decompõe em partes a "string de tempo".
 def decompoe(tempo_str: str) -> Decomposicao:
-   if __debug__:
-      # caractére por caractére da string.
-      print(tuple(tempo_str.split()))
-
    partes = tempo_str.split()
    peso = partes.pop()
    valor = partes.pop()
@@ -284,9 +280,6 @@ def decompoe(tempo_str: str) -> Decomposicao:
    # GB fazer-lô automaticamente.
    del partes
 
-   if __debug__:
-      print("valor:\"%s\"" % valor)
-
    try:
       (inteiro, fracao) = valor.split('.')
       fracao = float('0.' + fracao)
@@ -294,19 +287,8 @@ def decompoe(tempo_str: str) -> Decomposicao:
    except ValueError:
       fracao = 0
       inteiro = int(valor)
-   finally:
-      if __debug__:
-         # visualizando o que foi obtido.
-         print("\nvalor:\"%s\"" % valor)
-         print(
-            "fração:\"%s\" e inteiro:\"%s\""
-            % (fracao, inteiro),
-            end = '\n\n'
-         )
-      ...
-
-   if __debug__:
-      print(inteiro, fracao, peso)
+   else:
+      pass
 
    return {
       'fracao': fracao,
