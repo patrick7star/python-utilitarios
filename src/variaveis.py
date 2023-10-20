@@ -2,28 +2,21 @@
 
 """
    Cria variáveis booleanas que tem obviamente um valor lógico, porém,
- tais não somem quando o programa é encerrado, pois são gravas na 
+ tais não somem quando o programa é encerrado, pois são gravas na
  'memória de massa' de tempos em tempos.
-   Tal não é case-sensitive, portanto só armazena um tipo de variável 
+   Tal não é case-sensitive, portanto só armazena um tipo de variável
  por vez. Elas também tem a data de criação, e a última alteração feita.
- Por que criar isso, e não um variável de ambiente? Porque esta o 
+ Por que criar isso, e não um variável de ambiente? Porque esta o
  armazenamento é "permanente" não só quando está em execução.
 """
 
 from time import time
 from tempo import Temporizador
+from testes import bool_to_str
 
 # o que será importado?
 __all__ = ("TabelaBooleana")
 
-def bool_para_str(valor: bool) -> str:
-   match valor:
-      case True:
-         return "verdadeiro"
-      case False:
-         return "falso"
-   ...
-...
 
 def minimiza_espacos(texto: str) -> iter:
    """
@@ -73,7 +66,7 @@ def ajusta_variavel(nome: str) -> str:
       # retira possível vogais acentuadas.
       ''.join(
          map(
-            lambda ch: troca_acentuacao(ch), 
+            lambda ch: troca_acentuacao(ch),
             # retira espaços desnecessários...
             minimiza_espacos(nome.lower())
          )
@@ -88,8 +81,12 @@ from pathlib import (PurePosixPath, Path)
 from os import getenv
 
 # nome do arquivo para os registros das entradas.
-NOME_ARQUIVO = "variaveis_registro.dat"
-RAIZ = PurePosixPath(getenv("PYTHON_CODES") + "/python-utilitarios")
+NOME_ARQUIVO = ".variaveis_registro.dat"
+# como é desejado que, todas variáveis sejam armazenadas num mesmo
+# lugar, e, não dependendo onde tal biblioteca está instalada, vamos
+# fazer deste arquivo oculto, e colocado na pasta $HOME do usuário que
+# o chama, ou seja, seu referêncial será o usuário que o chama.
+RAIZ = PurePosixPath(getenv("HOME"))
 CAMINHO_BD = PurePosixPath.joinpath(RAIZ, NOME_ARQUIVO)
 SEPARADOR = ":::"
 
@@ -99,14 +96,14 @@ def grava_em_disco(variaveis: {str: (bool, DT)}):
       print("nenhuma variável à gravar em disco!")
       return None
 
-   with open(NOME_ARQUIVO, "wt") as arquivo:
+   with open(CAMINHO_BD, "wt") as arquivo:
       # itera dicionário com nome das variaveis e seus valores, além
       # de outras informações secundárias.
       for (nome, vls) in variaveis.items():
          arquivo.write(
             "{0}{sep}{1}{sep}{2}\n"
             .format(
-               nome, bool_para_str(vls[0]), 
+               nome, bool_to_str(vls[0]),
                vls[1].timestamp(),
                sep = SEPARADOR
             )
@@ -132,24 +129,36 @@ def le_do_disco() -> {str: (bool, DT)}:
 
    # abrindo arquivo para lê e processar dados, se um erro acontecer
    # no caminho, o dicionário só ficará inalterado.
-   with open(CAMINHO_BD, "rt") as arquivo:
-      for linha in arquivo.readlines():
-         # divide a string baseado no separador, assim podemos trabalhar
-         # com os devidos componentes salvos.
-         (nome, valor_logico, tempo) = (
-            linha.rstrip('\n')
-            .split(sep=SEPARADOR, maxsplit=2)
-         )
-         # convertendo e inserido na tabela.
-         agrupador[nome] = (
-            str_para_bool(valor_logico),
-            DT.fromtimestamp(float(tempo))
-         )
+   try:
+      with open(CAMINHO_BD, "rt") as arquivo:
+         for linha in arquivo.readlines():
+            # divide a string baseado no separador, assim podemos
+            # trabalhar com os devidos componentes salvos.
+            (nome, valor_logico, tempo) = (
+               linha.rstrip('\n')
+               .split(sep=SEPARADOR, maxsplit=2)
+            )
+            # convertendo e inserido na tabela.
+            agrupador[nome] = (
+               str_para_bool(valor_logico),
+               DT.fromtimestamp(float(tempo))
+            )
+         ...
       ...
+   except FileNotFoundError:
+      arquivo = open(CAMINHO_BD, "wt")
+      arquivo.close()
+      print(
+         "como '{}' não existe, então foi criado."
+         .format(NOME_ARQUIVO[1:])
+      )
    ...
 
    return agrupador
 ...
+
+from legivel import tempo
+from tabelas import (Coluna, forma_tabela)
 
 class TabelaBooleana:
    """
@@ -165,7 +174,7 @@ class TabelaBooleana:
       # lógico dela, e última vez que ela foi alterada.
       self.variaveis: {str:(bool, DT)} = le_do_disco()
 
-      # a cada 10seg atualiza o banco de variáveis, escrevendo novas 
+      # a cada 10seg atualiza o banco de variáveis, escrevendo novas
       # registros em disco.
       self.houve_atualizacao: bool = False
       limite = timedelta(seconds=10)
@@ -181,7 +190,7 @@ class TabelaBooleana:
    def __setitem__(self, chave: str, valor: bool):
       novo_nome = ajusta_variavel(chave)
 
-      if self.variaveis.has_key(novo_nome):
+      if novo_nome in self.variaveis:
          vL = self.variaveis[novo_nome][0]
          print("trocando valor de '{}' para '{}'".format(novo_nome, vL))
       else:
@@ -192,7 +201,7 @@ class TabelaBooleana:
       self.houve_atualizacao = True
 
       # acionando atualização automática, por enquanto na mesma thread.
-      if contagem.esgotado():
+      if (not self.contagem):
          grava_em_disco(self.variaveis)
          # contagem reiniciada para atualizar novamente.
          self.contagem.reutiliza()
@@ -205,13 +214,13 @@ class TabelaBooleana:
       # e no futuro tal operação de escrita será feita paralalemente
       # quando chegar pontos de verificação, assim não interrompendo
       # a consulta pelo valor.
-      if self.contagem.esgotado() and self.houve_atualizacao:
+      if (not bool(self.contagem)) and self.houve_atualizacao:
          grava_em_disco(self.variaveis)
          self.houve_atualizacao = False
       ...
       nome = ajusta_variavel(chave)
 
-      if self.variaveis.has_key(nome):
+      if nome in self.variaveis:
          return self.variaveis[nome][0]
       else:
          raise ValueError("tal '{}' não existe.".format(nome))
@@ -246,13 +255,32 @@ class TabelaBooleana:
 
    def __str__(self) -> str:
       "impressão do tipo mostra ela numa tabela"
-      pass
+      nomes_variaveis = []
+      valores_logicos = []
+      tempo_decorrido = []
+
+      for (nome, (valor, t)) in self.variaveis.items():
+         diferenca = DT.today() - t
+         tempo_str = tempo(diferenca.total_seconds())
+         # criando o rol de dados de cada grandeza.
+         nomes_variaveis.append(nome)
+         valores_logicos.append(bool_to_str(valor))
+         tempo_decorrido.append(tempo_str)
+      ...
+
+      return forma_tabela(
+         Coluna("valores-verdade",valores_logicos), 
+         Coluna("variáveis", nomes_variaveis), 
+         #Coluna("última alteração",tempo_decorrido)
+      )
+   ...
 ...
 
 
 # itens para testes:
 import unittest, random
 from os.path import exists
+from time import sleep
 
 class Funcoes(unittest.TestCase):
    def correcaoDeNomes(self):
@@ -277,7 +305,7 @@ class Funcoes(unittest.TestCase):
          ("tem várias   coisas", "tem várias coisas"),
          ("vamos tentar  com   vários    espaços",
          "vamos tentar com vários espaços"),
-         ("   isso é      uma   aberração  !", 
+         ("   isso é      uma   aberração  !",
          " isso é uma aberração !")
       ]
       funcao = minimiza_espacos
@@ -287,7 +315,7 @@ class Funcoes(unittest.TestCase):
          self.assertEqual(saida, s)
       ...
    ...
-   
+
    def gravacaoELeituraEmDisco(self):
       def selo_de_tempo_randomico() -> DT:
          return DT.datetime(
@@ -313,7 +341,7 @@ class Funcoes(unittest.TestCase):
             d1.hour == d2.hour and
             d1.minute == d2.minute and
             d1.second == d2.second
-         ) 
+         )
       ...
       # lê o que está registrado.
       saida = le_do_disco()
@@ -323,11 +351,15 @@ class Funcoes(unittest.TestCase):
          self.assertTrue(datas_quase_iguais(s[1][1], e[1][1]))
       ...
    ...
+
+   def runTest(self):
+      self.correcaoDeNomes()
 ...
 
 class Classes(unittest.TestCase):
    def instanciaBasicaComBD(self):
-      self.assertTrue(exists(NOME_ARQUIVO))
+      print("caminho =", CAMINHO_BD)
+      self.assertTrue(exists(CAMINHO_BD))
       table = TabelaBooleana()
       print("total de variáveis: {}".format(len(table)))
    ...
@@ -335,9 +367,32 @@ class Classes(unittest.TestCase):
    def instanciaBasicaSemBD(self):
       table = TabelaBooleana()
       self.assertEqual(table.variaveis, {})
+   ...
+
+   def escreveAlgumasVariaveis(self):
+      table = TabelaBooleana()
+      table["está de dia"] = True
+      table["está chovendo"] = False
+      del table
+
+      # pausa de meio-segundo.
+      #sleep(0.200)
+
+      new_table = TabelaBooleana()
+      self.assertTrue(new_table["ESTA_DE_DIA"])
+      self.assertFalse(new_table["ESTA_CHOVENDO"])
+   ...
+
+   def impressaoDaTabela(self):
+      table = TabelaBooleana()
+      print(table)
+
+   def runTest(self):
+      self.instanciaBasicaSemBD()
 ...
 
 
 if __name__ == "__main__":
-   unittest.main()
+   unittest.main(defaultTest=Classes)
+...
 

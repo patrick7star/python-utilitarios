@@ -24,7 +24,13 @@ class TabelaStrMatriz(MatrizTexto):
       for (y, linha) in enumerate(tabela_str.split('\n')):
          for (x, char) in enumerate(linha):
             #self.altera(y % altura, x % largura, char)
-            self[y][x] = char
+            try:
+               self[y][x] = char
+            except IndexError:
+               print("amostra:")
+               print(self)
+               print(y, x)
+               assert False
          ...
       ...
    ...

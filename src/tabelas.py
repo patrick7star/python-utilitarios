@@ -14,7 +14,10 @@ from tabelas_utilitarios import (reveste, TabelaStrMatriz)
 from tabelas_variaveis import *
 
 # o que será exportado?
-__all__ = ["Coluna", "forma_tabela"]
+__all__ = [
+   "Coluna", "forma_tabela", 
+   "forma_tabela_com_multiplas_colunas"
+]
 
 
 class Coluna:
@@ -34,6 +37,15 @@ class Coluna:
    def __len__(self):
       "quantia de dados no rol"
       return len(self._rol)
+   
+   # acionando comparações.
+   def __lt__(self, coluna):
+      assert isinstance(coluna, Coluna)
+      return len(self) < len(coluna)
+
+   def __gt__(self, coluna):
+      assert isinstance(coluna, Coluna)
+      return len(self) > len(coluna)
 ...
 
 
@@ -210,15 +222,161 @@ def forma_tabela(C1, C2):
    ...
 ...
 
+from copy import deepcopy
+from sys import exit
+
+# pega todas colunas passadas, ajusta elas lado à lado, com margem
+# e um separador visível. Todas linhas processadas e criadas pela
+# rotina, serão enfileiras, assim, o retorno será uma fila contendo
+# tais linhas para demais processamento, onde a primeira linha da 
+# fila é o cabeçalho da futura tabela.
+def aglomera_multiplas_colunas(*colunas) -> [str]:
+   if not todos_sao_colunas(colunas):
+      raise TypeError("todas têm quer do tipo Coluna")
+   # achando a Coluna com o maior rol.
+   mais_comprida_coluna = max(colunas)
+   # lista com todas iterações das respectivas colunas.
+   lista_iteracoes_das_colunas = list(iter(c) for c in colunas) 
+   # achando a entrada da Coluna, onde sua formatação em texto é a
+   # mais longa.
+   copia = deepcopy(lista_iteracoes_das_colunas)
+   mais_comprida_celula = 0
+   for c in copia:
+      for data in c:
+         comprimento = len(str(data))
+         if comprimento > mais_comprida_celula:
+            mais_comprida_celula = comprimento
+      ...
+   ...
+   # deque de linhas para cocatenação baseado em várias 
+   # quebras-de-linhas.
+   deque_de_linhas = []
+   # para juntar componentes numa só linha.
+   celulas = []
+
+   # criando primeira linha da tabela, o cabeçalho com os respectivos
+   # nomes(grandezas) da sequência de rols posterior.
+   separador_esquerdo = "{0}{1}".format(BARRA, MARGEM)
+   celulas.append(separador_esquerdo)
+
+   for coluna in colunas:
+      filete = (
+         "{:^{length}}{margem}{separador}"
+         .format(
+            coluna.nome(), margem=MARGEM,
+            length=mais_comprida_celula,
+            separador=BARRA
+         )
+      )
+      celulas.append(filete)
+   ...
+   # aglomera todas células numa única linha, então limpa a deque
+   # para próximas aglomerações.
+   deque_de_linhas.append(''.join(celulas))
+   celulas = []
+
+   # agora trabalhando somente com os rols aninhados com suas
+   # respectivas grandezas, que foram formatadas acima.
+   for _ in range(len(mais_comprida_coluna)):
+      separador_esquerdo = "{0}{1}".format(BARRA, MARGEM)
+      celulas.append(separador_esquerdo)
+
+      for coluna in lista_iteracoes_das_colunas:
+         try:
+            dado = next(coluna)
+         except StopIteration:
+            dado = "---"
+
+         # formatando a célula com o dado, e adicionando na deque
+         # de concatenação(para formar uma única linha).
+         celulas.append(
+            "{:^{length}}{margem}{separador}"
+            .format(
+               dado, separador=BARRA,
+               margem=MARGEM,
+               length=mais_comprida_celula
+            )
+         )
+      ...
+      # aglomera todas células numa única linha, então limpa a deque
+      # para próximas aglomerações.
+      deque_de_linhas.append(''.join(celulas))
+      celulas = []
+   ...
+
+   # retorna deque contendo o cabeçalho e os rols tudo organizado, 
+   # do modo que foi processado inicialmente.
+   return deque_de_linhas
+...
+
+def forma_tabela_com_multiplas_colunas(*colunas) -> str:
+   if todos_sao_colunas(colunas):
+      tabela = aglomera_multiplas_colunas(*colunas)
+      tampa_tabela(tabela)
+      #otimiza_uso_de_tela(tabela)
+      # cria string disso.
+      tabela_string = "\n".join(tabela)
+      matriz_ts = TabelaStrMatriz(tabela_string)
+      tabela = reveste(matriz_ts)
+      return tabela
+   else:
+      raise TypeError("todas têm quer do tipo Coluna")
+...
+
+def todos_sao_colunas(colunas: list) -> bool:
+   " verificando se todos são instância, portanto do tipo, Coluna."
+   return all(map(lambda c: isinstance(c, Coluna), colunas))
+
+
+from unittest import (TestCase, main)
+from sys import exit
+
+# dados gerais para testes:
+coluna1 = Coluna("gênero", ['M', 'F', 'F', 'F', 'M'])
+coluna2 = Coluna("idade", [14, 27, 38, 13, 51, 24])
+coluna3 = Coluna(
+   "frutas", [
+      "maça", "uva", "morango", "abacaxi", "pêssego", 
+      "manga", "framboesa", "laranja"
+])
+
+class Funcoes(TestCase):
+   def aglomeraMultiplasColunas(self):
+      aglomera_multiplas_colunas(coluna1, coluna2, coluna3)
+   ...
+   def formaTabelaComMultiplasColunas(self):
+      funcao = forma_tabela_com_multiplas_colunas
+      print(funcao(coluna3, coluna2, coluna1))
+   ...
+
+   def aglomeradoMinucioso(self):
+      saida_i = aglomera_multiplas_colunas(coluna1, coluna2, coluna3)
+      saida_ii = aglomera_colunas(coluna3, coluna2)
+      print(
+         "saídas crúas:",
+         saida_i, saida_ii,
+         sep = '\n'
+      )
+      print(
+         "resultado formatados:",
+         "\n".join(saida_i), 
+         "\n".join(saida_ii), 
+         sep='\n'
+      )
+   ...
+
+   def runTest(self):
+      self.formaTabelaMultiplasColunas()
+...
+
 
 # testes unitários:
 if __name__ == "__main__":
+   # main()
+   # exit() 
    from testes import executa_teste
    from random import randint, choice
 
-   # dados comuns:
-   coluna1 = Coluna("gênero", ['M', 'F', 'F', 'F', 'M'])
-   coluna2 = Coluna("idade", [14, 27, 38, 13, 51, 24])
 
    def imprime(array):
       print("\n".join(array), end="\n\n")

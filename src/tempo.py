@@ -133,9 +133,8 @@ class Temporizador:
    ...
    def __bool__(self) -> bool:
       """
-      retorna 'true' enquanto o temporizador
-      está ativo(não esgotado), 'false' se
-      esgotou-se.
+      retorna 'true' enquanto o temporizador está ativo(não esgotado),
+      'false' se esgotou-se.
       """
       # também tenta atualiza a contagem.
       try: self()
