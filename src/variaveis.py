@@ -158,7 +158,10 @@ def le_do_disco() -> {str: (bool, DT)}:
 ...
 
 from legivel import tempo
-from tabelas import (Coluna, forma_tabela)
+from tabelas import (
+   Coluna, forma_tabela,
+   forma_tabela_com_multiplas_colunas 
+)
 
 class TabelaBooleana:
    """
@@ -268,10 +271,10 @@ class TabelaBooleana:
          tempo_decorrido.append(tempo_str)
       ...
 
-      return forma_tabela(
-         Coluna("valores-verdade",valores_logicos), 
-         Coluna("variáveis", nomes_variaveis), 
-         #Coluna("última alteração",tempo_decorrido)
+      return forma_tabela_com_multiplas_colunas(
+         Coluna("variável", nomes_variaveis), 
+         Coluna("valor-verdade",valores_logicos), 
+         Coluna("última alteração",tempo_decorrido)
       )
    ...
 ...

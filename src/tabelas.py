@@ -239,15 +239,19 @@ def aglomera_multiplas_colunas(*colunas) -> [str]:
    lista_iteracoes_das_colunas = list(iter(c) for c in colunas) 
    # achando a entrada da Coluna, onde sua formatação em texto é a
    # mais longa.
-   copia = deepcopy(lista_iteracoes_das_colunas)
-   mais_comprida_celula = 0
-   for c in copia:
+   # primeiro com os nomes do cabeçalho:
+   mais_comprida_celula = max(len(c.nome()) for c in colunas)
+   # algora com a formatação de string dos dados.
+   for c in deepcopy(lista_iteracoes_das_colunas):
       for data in c:
          comprimento = len(str(data))
          if comprimento > mais_comprida_celula:
             mais_comprida_celula = comprimento
       ...
    ...
+   # adicionando duas mais espaços vázios, que são as margens para 
+   # o separador do nome/dado.
+   mais_comprida_celula += (len(MARGEM) + len(BARRA)) 
    # deque de linhas para cocatenação baseado em várias 
    # quebras-de-linhas.
    deque_de_linhas = []
@@ -309,10 +313,15 @@ def aglomera_multiplas_colunas(*colunas) -> [str]:
    return deque_de_linhas
 ...
 
-def forma_tabela_com_multiplas_colunas(*colunas) -> str:
+def forma_tabela_com_multiplas_colunas(*colunas, 
+estilo_padrao=True) -> str:
    if todos_sao_colunas(colunas):
       tabela = aglomera_multiplas_colunas(*colunas)
-      tampa_tabela(tabela)
+      # Por enquanto, há apenas dois estilos a serem secionados.
+      if estilo_padrao:
+         tampa_tabela(tabela)
+      else:
+         tampa_tabela_ii(tabela)
       #otimiza_uso_de_tela(tabela)
       # cria string disso.
       tabela_string = "\n".join(tabela)
@@ -327,18 +336,54 @@ def todos_sao_colunas(colunas: list) -> bool:
    " verificando se todos são instância, portanto do tipo, Coluna."
    return all(map(lambda c: isinstance(c, Coluna), colunas))
 
+def tampa_tabela_ii(linhas: [str]) -> None:
+   """
+   nova modalidade de tampa a tabela, os separadores são apenas 
+   colocados parte inferior e superior, para fechar a tabela, e um 
+   separador entre o cabeçalho e os demais dados das colunas.
+   """
+   # largura máxima da tabela.
+   comprimento = len(linhas[0])
+   # demilitador baseado na largura da tabela.
+   barra = BARRA * comprimento
+   # bara no topo da tabela.
+   linhas.insert(0, barra)
+   # separador entre o cabeçalho e os dados.
+   linhas.insert(2, barra)
+   # separador que fecha parte inferior da tabela.
+   linhas.append(barra)
+...
 
 from unittest import (TestCase, main)
 from sys import exit
+from random import (choice, randint)
+from testes import bool_to_str
 
-# dados gerais para testes:
-coluna1 = Coluna("gênero", ['M', 'F', 'F', 'F', 'M'])
-coluna2 = Coluna("idade", [14, 27, 38, 13, 51, 24])
+# dados gerais para testes. Dados abaixo variam em tamanho e valores
+# já que são gerados, majotariamente, via aleatoriedade:
+coluna1 = Coluna(
+   "gênero", list(
+      choice(['M', 'F']) 
+      for _ in range(randint(3, 12))
+   )
+)
+coluna2 = Coluna(
+   "idade", list(
+      randint(14, 51) 
+      for _ in range(randint(6, 10))
+   )
+)
 coluna3 = Coluna(
    "frutas", [
       "maça", "uva", "morango", "abacaxi", "pêssego", 
       "manga", "framboesa", "laranja"
 ])
+coluna4 = Coluna(
+   "valor-verdade", [
+      bool_to_str(choice([True, False])) 
+      for _ in range(randint(3, 8))
+   ]
+)
 
 class Funcoes(TestCase):
    def aglomeraMultiplasColunas(self):
@@ -347,6 +392,18 @@ class Funcoes(TestCase):
    def formaTabelaComMultiplasColunas(self):
       funcao = forma_tabela_com_multiplas_colunas
       print(funcao(coluna3, coluna2, coluna1))
+   ...
+
+   def FTCMC_ComQuatroColunas(self):
+      FUNCAO = forma_tabela_com_multiplas_colunas
+      ESTILO = choice([True, False])
+      print(
+         FUNCAO(
+            coluna3, coluna2, 
+            coluna1, coluna4, 
+            estilo_padrao=ESTILO
+         )
+      )
    ...
 
    def aglomeradoMinucioso(self):
@@ -365,6 +422,18 @@ class Funcoes(TestCase):
       )
    ...
 
+   def novoEstiloDeTampa(self):
+      tabela = aglomera_multiplas_colunas(
+         coluna2, coluna1,
+         coluna3, coluna4
+      )
+      tampa_tabela_ii(tabela)
+      tabela_string = "\n".join(tabela)
+      matriz_ts = TabelaStrMatriz(tabela_string)
+      tabela = reveste(matriz_ts)
+      print(tabela)
+   ...
+
    def runTest(self):
       self.formaTabelaMultiplasColunas()
 ...
@@ -372,8 +441,8 @@ class Funcoes(TestCase):
 
 # testes unitários:
 if __name__ == "__main__":
-   # main()
-   # exit() 
+   main()
+   exit()
    from testes import executa_teste
    from random import randint, choice
 
