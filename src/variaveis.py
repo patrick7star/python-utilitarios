@@ -89,8 +89,10 @@ NOME_ARQUIVO = ".variaveis_registro.dat"
 RAIZ = PurePosixPath(getenv("HOME"))
 CAMINHO_BD = PurePosixPath.joinpath(RAIZ, NOME_ARQUIVO)
 SEPARADOR = ":::"
+# apelido para dicionário com chave string e valor tupla.
+Variaveis = dict[str: (bool, DT)]
 
-def grava_em_disco(variaveis: {str: (bool, DT)}):
+def grava_em_disco(variaveis: Variaveis):
    # só faz algo se houver valores no dicionário.
    if len(variaveis) == 0:
       print("nenhuma variável à gravar em disco!")
@@ -124,7 +126,7 @@ def str_para_bool(valor: str) -> bool:
       raise ValueError("este '{}' não é um válido!".format(valor))
 ...
 
-def le_do_disco() -> {str: (bool, DT)}:
+def le_do_disco() -> Variaveis:
    agrupador: {str: (bool, DT)} = {}
 
    # abrindo arquivo para lê e processar dados, se um erro acontecer
@@ -176,6 +178,12 @@ class TabelaBooleana:
       # mapa que guarda o nome da variável, e uma tupla cotendo o valor
       # lógico dela, e última vez que ela foi alterada.
       self.variaveis: {str:(bool, DT)} = le_do_disco()
+
+      # se não estiver vázia, e o arquivo binário deste não existir,
+      # então clonar este para o binário.
+      caminho = Path(CAMINHO_BINARIO_BD)
+      if len(self.variaveis) > 0 and (not caminho.exists()):
+         clona_para_bd_binario()
 
       # a cada 10seg atualiza o banco de variáveis, escrevendo novas
       # registros em disco.
@@ -232,7 +240,9 @@ class TabelaBooleana:
    def salva(self) -> None:
       "faz operação de gravação automaticamente, na verdade força uma"
       # grava todas variáveis criadas ou atualizadas em disco.
-      grava_em_disco(self.tabelas)
+      grava_em_disco(self.variaveis)
+      # em seguida grava a versão binária.
+      clona_para_bd_binario()
       # marcando para nova futura atualiza no futuro.
       self.houve_atualizacao = False
       # refazendo a contagem.
@@ -246,6 +256,8 @@ class TabelaBooleana:
       """
       if self.houve_atualizacao:
          grava_em_disco(self.variaveis)
+         # também escrevendo versão em binário.
+         clona_para_bd_binario()
          if __debug__:
             print("última modificação foi realizada nela.")
       else:
@@ -277,6 +289,159 @@ class TabelaBooleana:
          Coluna("última alteração",tempo_decorrido)
       )
    ...
+
+   def __iter__(self) -> iter:
+      iterador = self.variaveis.items()
+      # uma tupla contendo um nome e outra tupla, esta segunda sendo
+      # um par com o valor, e timestamp, neste caso, só iteressa o 
+      # valor.
+      return map(lambda t: (t[0], t[1][0]), iterador)
+   ...
+...
+
+NOME_ARQUIVO_BINARIO = ".variaveis_registro_binario.dat"
+CAMINHO_BINARIO_BD = PurePosixPath.joinpath(RAIZ, NOME_ARQUIVO_BINARIO)
+
+def serializacao_da_variavel(nome: str, valor: bool, 
+  tempo: DT) -> bytearray:
+   # a array de bytes começa com o tamanho da string, esta que é
+   # a primeira.
+   bytes_str = bytes(nome, encoding="latin1")
+   size_str = len(bytes_str)
+   todos_bytes = bytearray(size_str.to_bytes(1, "little"))
+   # colocando a string, de tamanho variável.
+   # tamano da string terá um valor entre 1 à 255 caractéres no máximo.
+   todos_bytes += bytes_str
+
+   # anexando o valor-lógico.
+   bytes_bool = int(valor).to_bytes(1, "little")
+   todos_bytes += bytes_bool
+
+   segundos = tempo.timestamp()
+   # adicionando por último o valor flutuante.
+   inteiro = int(segundos)
+   # extraindo parte decimal.
+   decimal = abs((inteiro - segundos) * pow(10, 6))
+   bytes_int = inteiro.to_bytes(8, "little")
+   bytes_float = int(decimal).to_bytes(4, "little")
+   todos_bytes += bytes_int
+   todos_bytes += bytes_float
+
+   return todos_bytes
+...
+
+from array import array as Array
+from os import (
+   open as Open, O_RDONLY, O_CREAT,
+   O_WRONLY, close as Close, fdopen
+)
+
+def deserializando_variavel(fila: Array) -> (str, bool, DT):
+   # deque com toda quantias de bytes a serem consumida.
+   # primeiro byte é o nome da string.
+   tamanho_str = fila.pop(0)
+   print("tamanho da string: %d" % tamanho_str)
+   # então lê ela, baseado na sua quantia de bytes já lida.
+   nome = b"".join(
+      bytes(chr(b), encoding="ascii")
+      for b in drena(fila, tamanho_str)
+   )
+   # Agora lê-se 1 byte do valor-lógico.
+   valor_logico = bool(fila.pop(0))
+
+   # Lendo os bytes do ponto flutuante, primeiro 8 bytes da
+   # parte inteira, posteriormente 4 bytes da parte decimal.
+   bytes_int = (fila.pop(0) for _ in range(8))
+   inteiro = float(int.from_bytes(bytes_int, "little"))
+   bytes_float = (fila.pop(0) for _ in range(4))
+   # colocando ele novamente para um valor menor que um.
+   decimal = int.from_bytes(bytes_float, "little") * pow(10, -6)
+   # transformando num datetime novamente.
+   tempo = DT.fromtimestamp(inteiro + decimal)
+
+   # se não chegou aqui vázia, um erro aconteceu.
+   assert len(fila) == 0
+   return (nome, valor_logico, tempo)
+...
+
+def grava_em_disco_binario(variaveis: Variaveis) -> bool:
+   """o mesmo que anterior, porém a gravação é em binário"""
+   tipo = Open(CAMINHO_BINARIO_BD, O_WRONLY | O_CREAT)
+   arquivo = fdopen(tipo, "wb")
+
+   # convertendo todos os tipos de dados numa 'bytearray', assim,
+   # podemos escrever no 'file descriptor'. Eles seguem a ordem
+   # dos argumentos passados na função de serialização.
+   for (nome, (vL, t)) in variaveis.items():
+      _bytes = serializacao_da_variavel(nome, vL, t)
+      # são escritos um ao lado do outro sem qualquer separador.
+      # Portanto fica a cargo de quem escreveu ele, na ordem dada,
+      # interpleta-lá.
+      arquivo.write(_bytes)
+   ...
+   arquivo.close()
+   # se chegou até aqui, então é porque  a escrita foi concluída
+   # com total sucesso.
+   return True
+...
+
+def drena(a: Array, t:int) -> Array:
+   assert isinstance(a, Array)
+   assert isinstance(t, int)
+   return Array('B',(a.pop(0) for _ in range(t)))
+...
+
+def le_em_disco_binario() -> Variaveis:
+   """o mesmo que anterior, porém a gravação é em binário"""
+   variaveis: {str: (bool, DT)} = dict()
+   tipo = Open(CAMINHO_BINARIO_BD, O_RDONLY)
+   arquivo = fdopen(tipo, mode="r+b")
+   # pegando todos bytes nele.
+   _bytes = Array('B',arquivo.read())
+   arquivo.close()
+
+   # processando tal informação...
+   while len(_bytes) > 0:
+      # lendo o tamanho da string.
+      tamanho_str = _bytes[0]
+      # agora o total de bytes fica previsível. A regra é a seguinte,
+      # o primeiro byte representa o total de bytes da string seguinte,
+      # isso que deixa as fatias de bytes variante, no momento que
+      # leio interpleto ela, o total dos bytes restantes são fixos,
+      # 1 byte para o valor lógico, e 12 para o valor decimal, nesta
+      # ordem. Por isso da soma abaixo.
+      total = 1 + int(tamanho_str) + 1 + 12
+      slice_array = drena(_bytes, total)
+      (chave, vL, tempo) = deserializando_variavel(slice_array)
+      variaveis[chave] = (vL, tempo) 
+   ...
+   
+   return variaveis
+...
+
+def copia_bd_texto_para_bd_binario() -> None:
+   if __debug__:
+      print(
+         "não existe um 'banco de dados' "+
+         "com dados serializados em binário."
+      )
+      print("lendo BD existente...", end='')
+   ...
+   variaveis = le_do_disco()
+   if __debug__:
+      print("feito.")
+      print("criando sua versão binária.")
+   ...
+   assert(grava_em_disco_binario(variaveis))
+...
+
+def clona_para_bd_binario() -> bool:
+   caminho = Path(CAMINHO_BD)
+   if caminho.exists():
+      copia_bd_texto_para_bd_binario()
+      print("BD de texto clonado para binário.")
+   else:
+      print("tal BD binário já existe, não é preciso clonagem.")
 ...
 
 
@@ -284,6 +449,7 @@ class TabelaBooleana:
 import unittest, random
 from os.path import exists
 from time import sleep
+from os import remove
 
 class Funcoes(unittest.TestCase):
    def correcaoDeNomes(self):
@@ -355,11 +521,34 @@ class Funcoes(unittest.TestCase):
       ...
    ...
 
+   def copiaBDTextoParaBDBinario(self):
+      self.assertFalse(Path(CAMINHO_BINARIO_BD).exists())
+      copia_bd_texto_para_bd_binario()
+      self.assertTrue(Path(CAMINHO_BINARIO_BD).exists())
+      remove(CAMINHO_BINARIO_BD)
+   ...
+
+   def lendoBDBinario(self):
+      self.assertFalse(Path(CAMINHO_BINARIO_BD).exists())
+      clona_para_bd_binario()
+      variaveis = le_em_disco_binario()
+      for (n, (vl, t)) in variaveis.items():
+         T = DT.today()
+         decorrido = (T - t).total_seconds()
+         print(n, vl, tempo(decorrido), sep="::==::")
+      ...
+      remove(CAMINHO_BINARIO_BD)
+      self.assertFalse(Path(CAMINHO_BINARIO_BD).exists())
+   ...
+
    def runTest(self):
       self.correcaoDeNomes()
 ...
 
 class Classes(unittest.TestCase):
+   def runTest(self):
+      self.instanciaBasicaSemBD()
+
    def instanciaBasicaComBD(self):
       print("caminho =", CAMINHO_BD)
       self.assertTrue(exists(CAMINHO_BD))
@@ -390,8 +579,21 @@ class Classes(unittest.TestCase):
       table = TabelaBooleana()
       print(table)
 
-   def runTest(self):
-      self.instanciaBasicaSemBD()
+   def iteracaoDaTabela(self):
+      tabela = TabelaBooleana()
+      for (nome, valor_logico) in tabela:
+         print("nome: {} \t valor: {}".format(nome, valor_logico))
+   ...
+
+   def colocandoNovaVariavel(self):
+      print("ambos BDs já tem que existir.")
+      self.assertTrue(exists(CAMINHO_BD))
+      table = TabelaBooleana()
+      total_vars = len(table)
+      print("total de variáveis: {}".format(total_vars))
+      table["tempo nublAdo"] = True
+      table.salva()
+   ...
 ...
 
 
