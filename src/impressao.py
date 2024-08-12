@@ -1,19 +1,18 @@
+"""
+Tipos de visualização de qualquer lista de elementos que for passada.
+"""
 
-"""
-Tipos de visualização de qualquer lista
-de elementos que for passada.
-"""
+# o que será importado:
+__all__ = ["listagem", "escada", "silhueta"]
 
 # meu módulos:
-from arvore import matriciar_string
+from src.tree.arvore_old import matriciar_string
 # biblioteca do Python:
 from copy import deepcopy
 from shutil import get_terminal_size
 import array as Array
 from unittest import (TestCase, main)
 
-# o que será importado:
-__all__ = ["listagem", "escada", "silhueta"]
 
 def listagem(strings):
    # largura do terminal.

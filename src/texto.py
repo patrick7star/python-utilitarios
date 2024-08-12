@@ -1,6 +1,5 @@
-
 """
-O código que trabalha na visualização de textos-desenhos ficará aqui
+  O código que trabalha na visualização de textos-desenhos ficará aqui
 mesmo, na biblioteca utilitários. Só que agora, com um bom conhecimento
 de algoritmos o processo para gera-lô pode ser mais reduzido.
 """
@@ -13,13 +12,16 @@ from os import listdir, get_terminal_size
 from os.path import basename,join, dirname, abspath, normpath
 from sys import platform
 from queue import Queue, SimpleQueue
+from pathlib import PosixPath
+from io import TextIOBase
+from pathlib import PosixPath
+import tarfile
+from pprint import pprint
+from time import sleep
+from unittest import main, TestCase
+from shutil import rmtree
 # própria biblioteca:
-if  __file__ == "__main__":
-   from tela_objetos import Matriz
-else:
-   if __debug__: print("file: '{}'".format(__file__))
-   from tela_objetos import Matriz
-
+from tela.tela_objetos import Matriz
 
 # mapa contendo todo alfabeto, dígitos, e pontuações... quase todo
 # símbolos na tabela ASCII.
@@ -71,8 +73,6 @@ class MatrizTexto(Matriz):
    ...
 ...
 
-from pathlib import PosixPath
-
 # computa o caminho dado para o diretório símbolos.
 def caminho_simbolos(restante) -> PosixPath:
    # acessa um diretório pai e o diretório "símbolo" contido nele, se
@@ -105,8 +105,6 @@ def caminho_simbolos(restante) -> PosixPath:
       return path.joinpath("simbolos", restante)
    ...
 ...
-
-from io import TextIOBase
 
 def file_to_matriz(arquivo: TextIOBase) -> MatrizTexto:
    linhas = list(arquivo)
@@ -391,9 +389,6 @@ class Texto:
    ...
 ...
 
-from pathlib import PosixPath
-import tarfile
-
 def simbolos_estao_disponiveis() -> bool:
    diretorio_com_simbolos = PosixPath("../simbolos/")
    arquivo_de_extracao = PosixPath("../simbolos.tar")
@@ -482,11 +477,6 @@ def traduz_chaves_incossistentes() -> None:
       del tabela[velha]
    ...
 ...
-
-from pprint import pprint
-from time import sleep
-from unittest import  main, TestCase
-from shutil import rmtree
 
 def testa_funcao_concatena():
    a = tabela['a']

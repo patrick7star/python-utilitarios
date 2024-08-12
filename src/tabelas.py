@@ -1,14 +1,14 @@
-
 """
-Implementando a formação de Tabelas para
-minha 'biblioteca padrão' Python.
+Implementando a formação de Tabelas para minha 'biblioteca padrão' Python.
 """
 
 # biblioteca padrão do Python:
 from os import get_terminal_size
 from copy import deepcopy
 from array import array as Array
-
+from copy import deepcopy
+from sys import exit
+from random import (choice, randint)
 # módulos auxiliares:
 from tabelas_utilitarios import (reveste, TabelaStrMatriz)
 from tabelas_variaveis import *
@@ -47,7 +47,6 @@ class Coluna:
       assert isinstance(coluna, Coluna)
       return len(self) > len(coluna)
 ...
-
 
 # ajusta baseado no comprimento passado
 # "adicionando margens" a string.
@@ -222,8 +221,6 @@ def forma_tabela(C1, C2):
    ...
 ...
 
-from copy import deepcopy
-from sys import exit
 
 # pega todas colunas passadas, ajusta elas lado à lado, com margem
 # e um separador visível. Todas linhas processadas e criadas pela
@@ -354,10 +351,14 @@ def tampa_tabela_ii(linhas: [str]) -> None:
    linhas.append(barra)
 ...
 
+
+# == == == == == == == == == == == === == == == == == == == == == == == ===
+#
+#                          Testes Unitários 
+#
+# == == == == == == == == == == == === == == == == == == == == == == == === 
+from random import randint, choice
 from unittest import (TestCase, main)
-from sys import exit
-from random import (choice, randint)
-from testes import bool_to_str
 
 # dados gerais para testes. Dados abaixo variam em tamanho e valores
 # já que são gerados, majotariamente, via aleatoriedade:
@@ -438,15 +439,8 @@ class Funcoes(TestCase):
       self.formaTabelaMultiplasColunas()
 ...
 
-
 # testes unitários:
 if __name__ == "__main__":
-   main()
-   exit()
-   from testes import executa_teste
-   from random import randint, choice
-
-
    def imprime(array):
       print("\n".join(array), end="\n\n")
 
@@ -510,10 +504,4 @@ if __name__ == "__main__":
       )
 
       print(forma_tabela(coluna_ii, coluna_i))
-
-   executa_teste(testa_funcao_cria_tabela)
-   executa_teste(teste_de_funcao_tampa_tabela)
-   executa_teste(testa_funcao_ct_dobradura)
-   executa_teste(testa_funcao_reveste)
-   executa_teste(testa_funcao_forma_tabela)
 ...

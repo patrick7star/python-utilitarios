@@ -1,10 +1,7 @@
 '''
- O algoritmo lerá arquivos e diretórios
-e arquivará o tamanho de cada, a quantidade
-de arquivos neles e etc.
+ O algoritmo lerá arquivos e diretórios e arquivará o tamanho de cada, a 
+quantidade de arquivos neles e etc.
 '''
-from enum import Enum, auto
-
 # o que será importado:
 __all__ = (
    # enumeradores:
@@ -14,6 +11,8 @@ __all__ = (
    "tamanho",
    "tempo"
 )
+
+from enum import Enum, auto
 
 
 # enum's:
