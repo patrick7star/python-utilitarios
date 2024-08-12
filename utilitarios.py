@@ -1,29 +1,44 @@
 #!/usr/bin/python3 -OB
 
 """
-importa todos módulos atualmente importante
-para aqui, então serão exportados. Os códigos
-dados como "mortos", pois foram criados
-otimizações, ou descontinuados não serão
-exportados novamente. Muitos destes módulos
-reescritos com otimizações, ganharão o nome
-original, e como já dito, exportado.
+   Importa todos módulos atualmente importante para aqui, então serão 
+exportados. Os códigos dados como "mortos", pois foram criados otimizações, ou descontinuados não serão exportados novamente. Muitos destes módulos 
+reescritos com otimizações, ganharão o nome original, e como já dito, 
+exportado.
 """
 
+# re-exportando ...
+__all__ = [
+   "arvore",
+   "barra_de_progresso",
+   "espiral",
+   "legivel",
+   "romanos",
+   "tela",
+   "impressao",
+   "aritimetica",
+   "tabelas",
+   "numeros_por_extenso",
+   "texto",
+   "tempo"
+]
 
 # acessando diretório com códigos...
 from sys import path
 from os import getenv, system, remove
 from os.path import join, abspath, dirname, exists
 import tarfile
+import enum
+from shutil import move, rmtree
+from os import rename
+from pathlib import Path
+
 
 # computa o caminho dado para o
 # diretório 'source-codes'.
 def computa_caminho(restante):
-   # acessa um diretório pai e o diretório
-   # "símbolo" contido nele, se e somente se,
-   # está executando o arquivo, e no próprio
-   # diretório dele.
+   # Acessa um diretório pai e o diretório "símbolo" contido nele, se e 
+   # somente se, está executando o arquivo, e no próprio diretório dele.
    if __name__ == "__main__" == __file__ :
       path = join("../src", restante)
       return abspath(path)
@@ -56,23 +71,60 @@ else:
 ...
 
 
-# importando...
-import barra_de_progresso
-import impressao
-import espiral
-import legivel
-import romanos
-# sendo renomeada com a versão otimizada,
-# pelo menos até o momento.
-import tela_i as tela
-import arvore_ii as arvore
-import numeros_por_extenso
-import impressao
-# não usado muito, então dado como
-# descontinuado.
-import aritimetica
-import tabelas
-import texto
+def compila_todos_projetos() -> None:
+   diretorio_lib = Path("lib/")
+
+   if diretorio_lib.exists():
+      print("Já está tudo compilado.")
+      return None
+
+   print("Compilando todos libs ...")
+   system("python3 -m compileall -o 2 src/")
+   print("realizado com sucesso.")
+
+   print("Transferindo para o diretório lib/ ...")
+   move("src/__pycache__", ".")
+   rename ("__pycache__", "lib")
+   print("realizada com sucesso.")
+
+   print("Renomeando tais para algo mais legivel ...")
+   TRECHO = ".cpython"
+   for file in diretorio_lib.iterdir():
+      nome_str = str(file.name)
+      indice = nome_str.index(TRECHO)
+      atual_nome = nome_str[0:indice:1]
+      print(file, "====>", atual_nome)
+
+      novo_nome_str = atual_nome + ".pyc"
+      novo_nome_path = Path(file.parent, novo_nome_str)
+      file.rename(novo_nome_path)
+   ...
+   
+   print("\n\tVeririficando após renomeação ...")
+   for file in diretorio_lib.iterdir():
+      print("\t\t", '-', file)
+...
+
+# Importando...
+#import barra_de_progresso(descontinuado)
+import src.progresso as progresso
+import src.impressao as impressao
+import src.espiral as espiral
+import src.legivel as legivel
+import src.romanos as romanos
+# Sendo renomeada com a versão otimizada, pelo menos até o momento.
+#import tela_i as tela(descontinuado)
+import src.tela as tela
+#import arvore_ii as arvore(descontinuado)
+import src.arvore as arvore
+# import numeros_por_extenso(descontinuado)
+import src.extenso as extenso
+import src.impressao as impressao
+import src.tabelas as tabelas
+import src.texto as texto
+import src.tempo as tempo
+# Não usado muito, então dado como descontinuado.
+import src.aritimetica as aritimetica
 
 # verificando diretório com símbolos ...
 caminho = computa_caminho("simbolos")
@@ -109,27 +161,8 @@ else:
    ...
 ...
 
-# re-exportando ...
-__all__ = [
-   "arvore",
-   "barra_de_progresso",
-   "espiral",
-   "legivel",
-   "romanos",
-   "tela",
-   "impressao",
-   "aritimetica",
-   "tabelas",
-   "numeros_por_extenso",
-   "texto"
-]
-
-# computa o tipo de dado que é 
-# o objeto passado, por exemplo:
-# Classe, Função, Enum, Variável
-# e etc. Retorna uma string 
-# informando o tipo.
-import enum
+# Computa o tipo de dado que é o objeto passado, por exemplo: Classe, 
+# Função, Enum, Variável e etc. Retorna uma string informando o tipo.
 def qual_o_tipo(objeto):
    tipo = str(type(objeto))
    # proposições.
@@ -153,10 +186,9 @@ def qual_o_tipo(objeto):
    ...
 ...
 
-
 def le_modulo(modulo):
-   nome_modulo = modulo.__name__
-   print("módulo \"{}\":".format(nome_modulo))
+   nome_modulo = modulo.__name__.replace("src.", "")
+   print(" Módulo '{}':".format(nome_modulo))
 
    if __debug__:
       print(modulo.__all__)
@@ -167,20 +199,18 @@ def le_modulo(modulo):
       tipo = qual_o_tipo(modulo)
       recuo = " " * 4
       seu_tipo = qual_o_tipo(getattr(modulo, item))
-      print("{1}{0}[{2}]".format(item, recuo, seu_tipo))
+      print("{1}{0:.<30}[{2}]".format(item, recuo, seu_tipo))
    # mais uma linha.
    print("")
 ...
 
 if __name__ == "__main__":
-   print("\nimportando módulos ...\n")
+   compila_todos_projetos()
+
+   print("\nImportando módulos ...\n")
    todos_modulos = [
-      barra_de_progresso,
-      legivel, espiral,
-      arvore, romanos,
-      tela, impressao,
-      numeros_por_extenso,
-      tabelas, aritimetica
+      progresso, legivel, espiral, arvore, romanos, impressao,
+      extenso, aritimetica, tempo
    ]
    for modulo in todos_modulos:
       le_modulo(modulo)
