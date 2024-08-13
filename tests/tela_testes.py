@@ -1,14 +1,16 @@
 # biblioteca padrão do terminal.
 from os import get_terminal_size
+from unittest import (FunctionTestCase,)
+from sys import path
+path.append("..")
 # importando 'lib' especifica a testar.
-from biblioteca import tela_otimizada, executa_teste
-Ponto = tela_otimizada.Ponto
+from src.tela import Tela as TelaNova, Ponto
 
 
 # primeira tela, sem borda vísivel e
 # contendo grade.
 def testa_tela_com_grade_e_sem_borda():
-   t = tela_otimizada.Tela(None, None,True)
+   t = TelaNova(None, None,True)
    t.risca(Ponto(5, 20), 5, horizontal=False)
 
    t.circula(Ponto(5, 40), Ponto(10, 60))
@@ -22,7 +24,7 @@ def testa_tela_com_grade_e_sem_borda():
 ...
 
 def testa_metodo_risca():
-   t = tela_otimizada.Tela(None, None,borda=True, grade=False)
+   t = TelaNova(None, None,borda=True, grade=False)
 
    t.risca(Ponto(3,10), 20, simbolo='X')
    t.risca(Ponto(3, 10), 20, horizontal=False)
@@ -33,7 +35,7 @@ def testa_metodo_risca():
 
 # testando circunscrição em todos lados e cantos.
 def testa_metodo_circula():
-   t = tela_otimizada.Tela(None, None, borda=True, grade=False)
+   t = TelaNova(None, None, borda=True, grade=False)
    compr = 7
    (P, Q) = Ponto(0, 0), Ponto(compr, compr)
    t.circula(P, Q)
@@ -80,7 +82,7 @@ def testa_metodo_circula():
 
 # testando o método de enquadradamento.
 def testa_metodo_enquadra():
-   t = tela_otimizada.Tela(10, None)
+   t = TelaNova(10, None)
    string = "um teste apenas!"
    t.escreve(Ponto(5,30), string)
    t.enquadra(
@@ -94,7 +96,7 @@ def testa_metodo_enquadra():
 
 # testando circunscrição em todos lados e cantos.
 def testa_metodo_defazer_circulacoes():
-   t = tela_otimizada.Tela(None, None, borda=True, grade=False)
+   t = TelaNova(None, None, borda=True, grade=False)
    compr = 7
    (P, Q) = Ponto(0, 0), Ponto(compr, compr)
    t.circula(P, Q)
@@ -171,10 +173,27 @@ def testa_metodo_defazer_circulacoes():
 # testa métodos 'desfazer' e 'refazer'.
 
 # --- ~~~ --- ~~~ executando testes --- ~~~ --- ~~~ 
-executa_teste(
-   testa_tela_com_grade_e_sem_borda,
-   testa_metodo_risca,
-   testa_metodo_circula,
-   testa_metodo_enquadra,
-   testa_metodo_defazer_circulacoes
+testes = (
+   FunctionTestCase(testa_tela_com_grade_e_sem_borda),
+   FunctionTestCase(testa_metodo_risca),
+   FunctionTestCase(testa_metodo_circula),
+   FunctionTestCase(testa_metodo_enquadra),
+   FunctionTestCase( testa_metodo_defazer_circulacoes)
 )
+
+interruptor = [
+   (testes[0], True), (testes[1], True), (testes[2], True),
+   (testes[3], True), (testes[4], True),
+]
+
+for (test, permissao) in interruptor:
+   if permissao:
+      status = "on"
+   else:
+      status = "off"
+
+   print("[{:^8s}] test '{}'".format(status, test.id()))
+
+   if permissao:
+      test.run()
+...
