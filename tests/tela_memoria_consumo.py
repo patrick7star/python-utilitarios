@@ -7,44 +7,56 @@ o antigo.
 Muito do código do "módulo tela" original
 será reutilizado nesta nova criação.
 """
-from biblioteca import Tela, Ponto, tamanho, Unidade, Grandeza
-from biblioteca import TelaOptimizada
-from sys import getsizeof
-from biblioteca import range_bidimensional, espiral
+#from biblioteca import Tela, Ponto, tamanho, Unidade, Grandeza
+#from biblioteca import TelaOptimizada
+from sys import getsizeof, path
+path.append("..")
+# Deste módulo...
+from src.legivel import (tamanho, Unidade, Grandeza)
+from src.tela import Tela as TelaOptimizada, Ponto
+from src.screen.tela_antigo import Tela
+from src.espiral import (range_bidimensional, espiral)
+#from biblioteca import range_bidimensional, espiral
 
 # métrica padrão para impressão
 METRICA_PADRAO = (Unidade.BYTE, Grandeza.METRICO)
 
-tela_i = TelaOptimizada.Tela(10_000, 10_000,borda=True, grade=False)
-tela_ii = Tela(10_000, 10_000, borda=True,grade=False)
+ALTURA = 100; LARGURA = 80
+tela_old = TelaOptimizada(ALTURA, LARGURA,borda=True, grade=False)
+tela_new = Tela(ALTURA, LARGURA, borda=True,grade=False)
 
-print(tela_i)
-print(tela_ii)
+print(tela_old)
+print(tela_new)
 
-t1 = getsizeof(tela_i)
-t2 = getsizeof(tela_ii)
-assert t1 < t2
-print("tamanho do tela_i: %s" % tamanho(t1, *METRICA_PADRAO))
-print("tamanho do tela_ii: %s" % tamanho(t2, *METRICA_PADRAO))
+tO = getsizeof(tela_old)
+tN = getsizeof(tela_new)
+assert tO > tN
+print(
+   "tamanho do tela_old: %s\ntamanho do tela_new: %s" 
+   % (tamanho(tO, *METRICA_PADRAO), tamanho(tN, *METRICA_PADRAO))
+)
 
 coords = range_bidimensional((5,12), 4)
 
 for (y,x) in espiral((18,45)):
-   tela_i.marca(y,x, simbolo='*')
-   tela_ii.marca(y,x, simbolo='*')
+   pA = Ponto(y, x)
+   tela_old.marca(pA, '*')
+   tela_new.marca(y,x, simbolo='*')
 ...
 
 for (y,x) in coords:
-   tela_i.marca(y,x)
-   tela_ii.marca(y,x)
+   tela_old.marca(Ponto(y, x))
+   tela_new.marca(y, x)
 ...
 
-print(tela_i)
-print(tela_ii)
+print(tela_old)
+print(tela_new)
 
-t1 = getsizeof(tela_i)
-t2 = getsizeof(tela_ii)
-assert t1 < t2
-print("tamanho do tela_i: %s" % tamanho(t1, *METRICA_PADRAO))
-print("tamanho do tela_ii: %s" % tamanho(t2, *METRICA_PADRAO))
+tO = getsizeof(tela_old)
+tN = getsizeof(tela_new)
+assert tO > tN
+print(
+   "tamanho do tela_old: %s\ntamanho do tela_new: %s" 
+   % (tamanho(tO, *METRICA_PADRAO), tamanho(tN, *METRICA_PADRAO))
+)
 
