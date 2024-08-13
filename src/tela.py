@@ -5,7 +5,7 @@
 from os import get_terminal_size
 from sys import platform, getsizeof
 # re-exportando.
-from tela_objetos import *
+from src.screen.tela_objetos import *
 
 # determinando o que será importado.
 __all__ = ["Tela", "Ponto", "Matriz"]
@@ -147,6 +147,7 @@ class Tela:
    ...
 
    def marca(self, ponto, simbolo='x'):
+      assert isinstance(ponto, Ponto)
       """
       Escreve uma letra em determinada posição da
       tela. A posição tem que ser válida, do caso
@@ -164,7 +165,7 @@ class Tela:
       if p and q:
          # adicionando registro feito.
          modificacao = (L, C, self._matriz[L][C])
-         self.realizacoes.append(modificacao)
+         self._realizacoes.append(modificacao)
          self._matriz[L][C] = simbolo
       ...
    ...
