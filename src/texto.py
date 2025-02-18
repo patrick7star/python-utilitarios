@@ -21,7 +21,7 @@ from time import sleep
 from unittest import main, TestCase
 from shutil import rmtree
 # própria biblioteca:
-from tela.tela_objetos import Matriz
+from src.text.inicializacao import (tabela_de_desenhos, MatrizTexto)
 
 # mapa contendo todo alfabeto, dígitos, e pontuações... quase todo
 # símbolos na tabela ASCII.
@@ -29,180 +29,12 @@ tabela = {}
 # verifica os símbolos foram carregados.
 CARREGADOS = False
 
-class MatrizTexto(Matriz):
-   def __init__(self, altura, largura):
-      grade = False
-      super().__init__(altura, largura, grade)
-   ...
-
-   def dimensao(self):
-      """
-      retorna tupla com a dimensão, onde primeiro valor é a altura, 
-      a segunda é a largura.
-      """
-      qtd_cols = len(self._linhas[0])
-      qtd_lins = len(self._linhas)
-      return (qtd_lins, qtd_cols)
-   ...
-
-   def concatena_vertical(self, outra_mt):
-      (a_omt, l_omt) = outra_mt.dimensao()
-      (a_mt, l_mt) = self.dimensao()
-      altura = a_omt + a_mt
-      largura = max(l_mt, l_omt)
-      # nova matriz-texto que embarca ambas.
-      resultado = MatrizTexto(altura + 1, largura)
-
-      # posicionando cada nos seus devidos lugares.
-      for y in range(a_mt):
-         for x in range(l_mt):
-            char = self[y][x]
-            # resultado.altera(y, x, char)
-            resultado[y][x] = char
-         ...
-      ...
-      for y in range(a_omt):
-         for x in range(l_omt):
-            char = outra_mt[y][x]
-            # resultado.altera(y + a_mt+1, x, char)
-            resultado[y + a_mt + 1][x] = char
-         ...
-      ...
-
-      return resultado
-   ...
-...
-
-# computa o caminho dado para o diretório símbolos.
-def caminho_simbolos(restante) -> PosixPath:
-   # acessa um diretório pai e o diretório "símbolo" contido nele, se
-   # e somente se, está executando o arquivo, e no próprio diretório
-   # dele.
-   if __name__ == "__main__" == __file__ :
-      path = PosixPath("../simbolos").joinpath(restante)
-      # path = join("../simbolos", restante)
-      # return abspath(path)
-      return path.resolve()
-   else:
-      # caminho até o arquivo importado.
-      # path = abspath(__file__)
-      path =PosixPath(__file__).resolve()
-      # strip o arquivo e o diretório localizado.
-      '''
-      path = dirname(path)
-      path = dirname(path)
-      '''
-      path = path.parent
-      path = path.parent
-      # chega na raíz da 'lib', onde estão não só este código, mas
-      # todos os demais. Então aqui, têm a pasta "símbolos" com todos
-      # dados necesários, acessa ele e seus subdirs que são dados
-      # como argumento.
-      ''' 
-      path = join(path, "simbolos", restante)
-      return path
-      '''
-      return path.joinpath("simbolos", restante)
-   ...
-...
-
-def file_to_matriz(arquivo: TextIOBase) -> MatrizTexto:
-   linhas = list(arquivo)
-   (C, L) = (max(len(l) for l in linhas), len(linhas))
-   matriz = MatrizTexto(L, C)
-
-   for (y, linha) in enumerate(linhas):
-      for (x, char) in enumerate(linha):
-         if char == '\n':
-            continue
-         matriz[y][x] = char
-      ...
-   ...
-   return matriz
-...
 
 def inicializando() -> None:
-   # para o programa se não houver os símbolos necessários para
-   # a impressão. Se houver apenas um backup dele, realiza a extração
-   # no diretório certo. Retorna um valor lógico se já existe o
-   # diretório com tudo certo, ou se foi extraído com sucesso.
-   assert simbolos_estao_disponiveis()
-   # caminhos dos arquivos contendo os "desenhos".
-   caminhos_dos_simbolos = [
-      # caminho para o diretório com 'alfabeto'.
-      caminho_simbolos("alfabeto"),
-      # caminho para o diretório com 'números'.
-      caminho_simbolos("numeros"),
-      # caminho para o diretório com 'pontuações'.
-      caminho_simbolos("pontuacao")
-   ]
+   global tabela, CARREGADOS
 
-   if __debug__:
-      print("alfabetos =", caminhos_dos_simbolos[0])
-      print("números =", caminhos_dos_simbolos[1])
-      print("pontuação =", caminhos_dos_simbolos[2])
-      print("atual diretório '%s'" % PosixPath('.').cwd())
-   ...
-
-   # carrega todos arquivos, de todos subdiretórios...
-   for caminho in caminhos_dos_simbolos:
-      for arquivo in listdir(caminho):
-         caminho_arquivo = caminho.joinpath(arquivo)
-         chave = arquivo[0:-4]
-         if chave.isalpha():
-            chave = chave.lower()
-         fd = open(caminho_arquivo, "rt", encoding="latin1")
-         desenho = file_to_matriz(fd)
-         tabela[chave] = desenho
-      ...
-   ...
-   traduz_chaves_incossistentes()
-   global CARREGADOS
+   tabela = tabela_de_desenhos()
    CARREGADOS = True
-...
-
-# converte nomes de dígitos nos valores em sí.
-def nome_to_digito(nome):
-   tokens = {
-      "zero":0, "um":1, "dois":2, "tres":3, "quatro":4, "cinco":5, 
-      "seis":6, "sete":7, "oito":8, "nove":9
-   }
-   return tokens[nome]
-...
-
-# concatena duas matriz-texto.
-def concatena(mt1: MatrizTexto, mt2: MatrizTexto):
-   (a1, l1) = mt1.dimensao()
-   (a2, l2) = mt2.dimensao()
-   diferenca = abs(a1-a2)
-   # computa maior dimensão
-   (altura, largura) = (max(a1, a2), l1 + l2)
-   # matriz-texto resultante.
-   resultado = MatrizTexto(altura, largura)
-   for y in range(a1):
-      for x in range(l1):
-         char = mt1[y][x]
-         if a1 < a2:
-            # resultado.altera(y+diferenca, x, char)
-            resultado[y + diferenca][x] = char
-         else:
-            # resultado.altera(y, x, char)
-            resultado[y][x] = char
-      ...
-   ...
-   for y in range(a2):
-      for x in range(l2):
-         char = mt2[y][x]
-         if a2 < a1:
-            y1 = y + diferenca
-         else:
-            y1 = y
-         # resultado.altera(y1, x + l1, char)
-         resultado[y1][x + l1] = char
-      ...
-   ...
-   return resultado
-...
 
 def constroi_str(string):
    # se não for carregado ainda os símbolos, então que seja agora.
@@ -229,9 +61,11 @@ def constroi_str(string):
    # demais concatenações até a fila acabar.
    remocao = fila.get()
    resultado = remocao
+   ESPACO = MatrizTexto.espaco_caractere()
    while not fila.empty():
       nova_remocao = fila.get()
-      resultado = concatena(resultado, nova_remocao)
+      # resultado = concatena(resultado, nova_remocao)
+      resultado = resultado + ESPACO + nova_remocao
    ...
    return resultado
 ...
@@ -246,7 +80,7 @@ class Palavras:
 
       # todas chaves na tabela tem apenas letras minúsculas.
       for palavra in frase.lower().split():
-         texto_desenho = constroi_str(palavra)
+         texto_desenho = constroi_str(palavra.upper())
          info = (texto_desenho, palavra, indice)
          indice += 1
          self._palavras.append(info)
@@ -328,7 +162,6 @@ class Texto:
       # divide a palavras de acordo com
       # o limite do terminal.
       self._separa_em_linhas()
-   ...
 
    # separa as palavras iteradas em linhas.
    def _separa_em_linhas(self):
@@ -348,45 +181,47 @@ class Texto:
       ...
       if len(linha) > 0:
          self._linhas.put(tuple(linha))
-   ...
 
    def __str__(self):
       if self._texto is not None:
          return str(self._texto)
 
       # começa todo processo de concatenação ...
-      espaco = MatrizTexto(4, 3)
+      #espaco = MatrizTexto(4, 3)
+      ESPACO = MatrizTexto.espaco_palavra()
       linhas = SimpleQueue()
       # processo de concatenação horizontal.
       (n, base) = (1, None)
+
       while not self._linhas.empty():
          item = self._linhas.get()
          for indice in item:
             palavra = self._palavras[indice][0]
+
             if base is None:
-               base = concatena(palavra, espaco)
+               #base = concatena(palavra, espaco)
+               base = palavra + ESPACO
             else:
-               base = concatena(base, palavra)
-               # adiciona espaço no fim, se e somente
-               # se, não é a última palavra da
-               # iteração de 'linha'.
+               # base = concatena(base, palavra)
+               base = base + palavra
+               # Adiciona espaço no fim, se e somente se, não é a última 
+               # palavra da iteração de 'linha'.
                if base != item[-1]:
-                  base = concatena(base, espaco)
-            ...
-         ...
+                  #base = concatena(base, espaco)
+                  base = base +  ESPACO
+
          linhas.put(base)
          base = None
-      ...
+
       # agora o processo de concatenação vertical.
       self._texto = linhas.get()
       while not linhas.empty():
          item = linhas.get()
-         self._texto = self._texto.concatena_vertical(item)
-      ...
+         #self._texto = self._texto.concatena_vertical(item)
+         self._texto = self._texto | item
 
       # matrix-texto para string.
       return str(self._texto)
-   ...
 ...
 
 def simbolos_estao_disponiveis() -> bool:
@@ -457,7 +292,6 @@ def equivalente(nome_do_desenho: str) -> chr:
          return 'não-trabalhados'
          # raise Exception("caractére com desenho inexistente!")
    ...
-...
 
 def traduz_chaves_incossistentes() -> None:
    # traduz chaves inconssistentes...
@@ -476,33 +310,9 @@ def traduz_chaves_incossistentes() -> None:
       tabela[nova] = tabela[velha]
       del tabela[velha]
    ...
-...
 
-def testa_funcao_concatena():
-   a = tabela['a']
-   dois = tabela['2']
-   juncao = concatena(a, dois)
-   print(juncao)
-   juncao = concatena(dois, a)
-   print(juncao)
-...
 
-def teste_de_constroi_str():
-   texto_desenho = constroi_str("bigorna")
-   print(texto_desenho)
-   texto_desenho = constroi_str("pe")
-   print(texto_desenho)
-   texto_desenho = constroi_str("k")
-   print(texto_desenho)
-   texto_desenho = constroi_str("casa-de-queijo")
-   print(texto_desenho)
-   texto_desenho = constroi_str("13/04")
-   print(texto_desenho)
-   texto_desenho = constroi_str("08:38:52")
-   print(texto_desenho)
-...
-
-class Classes(TestCase):
+class Unitarios(TestCase):
    def setUp(self):
       print("extraindo o diretório necessário...", end='')
       inicializando()
@@ -510,9 +320,15 @@ class Classes(TestCase):
 
    def tearDown(self):
       print("removendo diretório extraido...", end="")
-      rmtree("../simbolos")
+      #rmtree("../simbolos")
       print("feito!")
-   ...
+
+   def construcao_de_string(self):
+      sample = ["bigorna", "pe", "k", "casa-do-queijo", "13/04", "08:38:52"]
+
+      for In in sample:
+         Out = constroi_str(In.upper())
+         print(Out)
 
    def inicializacao_sucedida(self):
       for chave in tabela.keys():
@@ -521,10 +337,9 @@ class Classes(TestCase):
          else:
             print("chave: %i" % chave)
          print(tabela[chave], end="\n\n")
-      ...
+
       assert CARREGADOS
       self.assertTrue(CARREGADOS)
-   ...
 
    def classe_palavras(self):
       objeto = Palavras(
@@ -543,15 +358,14 @@ class Classes(TestCase):
       assert len(objeto) == 15
       assert objeto[5][1] == "goes"
       assert objeto[11][1] == "friend"
-   ...
 
    def classe_texto(self):
-      t = Texto("visual code is a worst than i thought before use it")
+      t = Texto(
+         "visual code is worster than i thought before use it." +
+         " You dont think either?!"
+      )
       print(t)
       assert True
-   ...
-...
-
 
 if __name__ == "__main__":
    main()
