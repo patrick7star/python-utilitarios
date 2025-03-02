@@ -7,6 +7,8 @@ __all__ = (
    # enumeradores:
    "Grandeza",
    "Unidade",
+   # Constantes:
+   "HORA", "DIA",
    # funções:
    "tamanho",
    "tempo"
@@ -152,6 +154,9 @@ ano = 365 * dia
 decada = 10 * ano
 seculo = 10 * decada
 milenio = 10 * seculo
+# Nova notação disponível:
+HORA = hora
+DIA = dia
 
 # Representar o tempo de forma legível,
 # onde converte todos valores passados na

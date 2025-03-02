@@ -1,14 +1,14 @@
+"""
+   Ferramentas muitos úteis para vários códigos, que são um Temporizador e 
+ um Cronômetro. Para quem não conhece nenhuma, a primeira faz uma contagem 
+ regressiva; já a segunda conta por tempo "indeterminados", porém possível 
+ de ter marcos(registros arbitrários) durante a contagem.
+"""
 
-"""
- Ferramentas muitos úteis para vários códigos,
-que são um Temporizador e um Cronômetro. Para
-quem não conhece nenhuma, a primeira faz uma
-contagem regressiva; já a segunda conta por
-tempo "indeterminados", porém possível de ter
-marcos(registros arbitrários) durante a contagem.
-"""
 from time import (time, time_ns)
 from datetime import timedelta
+from .legivel import (tempo as Tempo)
+import statistics
 
 __all__ = [
    "CronometroParadoError",
@@ -16,6 +16,7 @@ __all__ = [
    "Temporizador",
    "Cronometro"
 ]
+
 
 class TempoEsgotadoError(Exception):
    def __str__(self):
@@ -35,8 +36,20 @@ class CronometroParadoError(Exception):
 
 class Temporizador:
    def __init__(self, tempo):
-      "se o tempo não for um 'delta', será considerado como segundos."
+      "Se o tempo não for um 'delta', será considerado como segundos."
+      # Pode ter os seguintes tipos de valores:
+      um_argumento_nao_valido = not (
+         isinstance(tempo, timedelta)  or 
+         isinstance(tempo, int)        or
+         isinstance(tempo, float)
+      )
+
+      if um_argumento_nao_valido:
+         msg_erro = "Só são válidos tipos 'timedelta', 'int' or 'float'"
+         raise TypeError(msg_erro)
+
       self._registro_inicial = int(time())
+
       if isinstance(tempo, (int, float)):
          nos_nanos = (tempo <= pow(10, -9))
          if isinstance(tempo, float) and nos_nanos:
@@ -47,29 +60,28 @@ class Temporizador:
             )
             raise ValueError(mensagem_erro)
          ...
-         # segundos registrado até agora de uma
-         # data inicial marcada, convertido a um
-         # valor inteiro.
+         # Segundos registrado até agora de uma data inicial marcada, 
+         # convertido a um valor inteiro.
          self._limite = tempo
       elif isinstance(tempo, timedelta):
          self._limite = tempo.total_seconds()
       else:
          mensagem_erro = (
-            "só são aceitos valores do tipo 'int', 'float' " +
+            "Só são aceitos valores do tipo 'int', 'float' " +
             "ou 'duration'. O primeiro para casos em segundos " +
             "inteiros; o segundo segundos inteiros ou também" +
             "frações mistas; e o último um construto especial " +
             "para durações de tempo, com precisão de microsegundos."
          )
          raise TypeError(mensagem_erro)
-      ...
-      # marco inicial.
+
+      # Marco inicial.
       self._atual = 0
-      # chamadas num temporizador isolado.
+      # Chamadas num temporizador isolado.
       self._ciclos = 0
-      # total de reutilizações.
+      # Total de reutilizações.
       self._reutilizacoes = 0
-   ...
+
    def __call__(self):
       """
       chamada, atualiza tempo decorrido. Se alcançou
@@ -102,46 +114,47 @@ class Temporizador:
          return 1.0
       else:
          return self._atual / self._limite
-   ...
+
    def agendado(self):
       "retorna a duração que você impos ao Temporizador."
       # primeiro atualizando o tempo ...
       self()
       return timedelta(seconds=self._limite)
-   ...
+
    def __lt__(self, tempo) -> bool:
       if isinstance(tempo, (timedelta, int, float)):
          if isinstance(tempo, timedelta):
             tempo = tempo.total_seconds()
-      ...
+
       # primeiro atualizando o tempo ...
       self()
       # contagem atual está em ...
       contagem = self._limite - self._atual
       return contagem <= tempo
-   ...
+
    def __gt__(self, tempo) -> bool:
       if isinstance(tempo, (timedelta, int, float)):
          if isinstance(tempo, timedelta):
             tempo = tempo.total_seconds()
-      ...
+
       # primeiro atualizando o tempo ...
       self()
       # contagem atual está em ...
       contagem = self._limite - self._atual
       return contagem > tempo
-   ...
+
    def __bool__(self) -> bool:
       """
-      retorna 'true' enquanto o temporizador está ativo(não esgotado),
+      Retorna 'true' enquanto o temporizador está ativo(não esgotado),
       'false' se esgotou-se.
       """
       # também tenta atualiza a contagem.
       try: self()
       except TempoEsgotadoError: pass
       return self._atual < self._limite
-   ...
+
    def __str__(self) -> str:
+      "Formatação de debug da classe."
       try:
          from legivel import tempo as Tempo
       except ImportError:
@@ -149,8 +162,7 @@ class Temporizador:
       else:
          decorrido = self._limite - self._atual
          return Tempo(decorrido, True)
-      ...
-   ...
+
    def reutiliza(self) -> int:
       """
       Reseta todas contagem do Temporizador. Retorna
@@ -167,11 +179,7 @@ class Temporizador:
       self._reutilizacoes += 1
       # retorna a atual contagem.
       return self._reutilizacoes
-   ...
 ...
-
-from legivel import tempo
-import statistics
 
 class Cronometro:
    """
@@ -243,13 +251,13 @@ class Cronometro:
       # retira a parte fracional de valores muitos pequenos, digo,
       # até os minutos.
       if segundos < 60:
-         tempo_str = tempo(
+         tempo_str = Tempo(
             segundos,
             acronomo = True,
             arredonda = True
          )
       else:
-         tempo_str = tempo(segundos, acronomo = True)
+         tempo_str = Tempo(segundos, acronomo = True)
       if self.terminado:
          return "{}(terminou)".format(tempo_str)
       else:
@@ -284,7 +292,7 @@ class Cronometro:
          if decorrido == 0:
             continue
 
-         tempo_str = tempo(decorrido, acronomo=True, arredonda=True)
+         tempo_str = Tempo(decorrido, acronomo=True, arredonda=True)
          print("[{:^10}]".format(tempo_str))
       ...
    ...
@@ -393,6 +401,9 @@ def stringtime_to_segundos(string):
 ...
 
 
+#+========================================================================+
+#                          Testes Unitários
+#+========================================================================+
 from unittest import (main, TestCase)
 from time import sleep
 from random import (randint, choice)
@@ -464,7 +475,7 @@ def pausa_de_miliseg_ou_seg():
    else:
       tempo_aleatorio = randint(1, 100) / 100
    sleep(tempo_aleatorio)
-   return tempo(tempo_aleatorio)
+   return Tempo(tempo_aleatorio)
 ...
 
 class CronometroTeste(TestCase):
@@ -494,7 +505,7 @@ class CronometroTeste(TestCase):
 
       M = c.media()
       print("valor:", M)
-      print("média: {}".format(tempo(c.media(), arredonda=True)))
+      print("média: {}".format(Tempo(c.media(), arredonda=True)))
 
       c.parar()
       print("registro do tempo:", c)
