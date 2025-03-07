@@ -1,6 +1,10 @@
 '''
- O algoritmo lerá arquivos e diretórios e arquivará o tamanho de cada, a 
-quantidade de arquivos neles e etc.
+  Algoritmo clássico de exércicio em inicialização de programação,
+  entretanto, bastante útil. Ele converte alguns valores crús, porém que
+  representam na verdade grandezas. Aqui ele até adiciona no final esta
+  grandeza depois de cortar/e truncar número para algo mais legível. Ele
+  representa tais números baseados em conhecidos múltiplos e submúltiplos
+  que tal grandeza pode assumir.
 '''
 # o que será importado:
 __all__ = (
@@ -8,14 +12,18 @@ __all__ = (
    "Grandeza",
    "Unidade",
    # Constantes:
-   "HORA", "DIA",
+   "MINUTO", "HORA", "DIA", "MES", "ANO",
+   "MILENIO", "DECADA", "SECULO",
    # funções:
    "tamanho",
    "tempo"
 )
 
-from enum import Enum, auto
-
+# Biblioteca padrão do Python:
+from datetime import (datetime, timedelta)
+from enum import (Enum, auto)
+# Apelidos para algumas estruturas primitivas de retorno:
+Decomposicao = {str: float, str:int, str:str}
 
 # enum's:
 class Unidade(Enum):
@@ -28,15 +36,11 @@ class Grandeza(Enum):
    BINARIO = auto()
 ...
 
-# dicionários dentre de dicionários.
-# o primeiro é uma string ligada a um
-# mapa, este por sua, vez, outras strings
-# ligadas a tupla, que tem vários pares
-# de tuplas dentro da mesma. Estas, represetam 
-# os pesos usado da função 'tamanho'.
-# Está aqui, simplesmente, porque o aninhamento
-# dentro da função está uma confusão, ou seja,
-# por legibilidade.
+#   Dicionários dentre de dicionários. o primeiro é uma string ligada a um 
+# mapa, este por sua, vez, outras strings ligadas a tupla, que tem vários 
+# pares de tuplas dentro da mesma. Estas, represetam os pesos usado da 
+# função 'tamanho'. Está aqui, simplesmente, porque o aninhamento dentro 
+# da função está uma confusão, ou seja, por legibilidade.
 PESOS = {
    "byte": {
       "metrico": (
@@ -72,12 +76,37 @@ PESOS = {
    }
 }
 
-def tamanho(valor, unidade: Unidade, sistema: Grandeza, 
+# Constantes com escalas de tempo, com suas equivalências em segundos.
+# A coisa dos múltiplos de submúltiplos são bem confusos, não seguem o
+# sistema métrico... inicialmente!
+minuto = 60
+hora = 60 * minuto
+dia =  24 * hora
+
+# Nova notação disponível:
+MILISEG  = 1e-3
+MICROSEG = 1e-6
+NANOSEG  = 1e-9
+PICOSEG  = 1e-12
+MINUTO   = 60
+HORA     = hora
+DIA      = dia
+MES      = 30 * DIA
+ANO      = 365 * DIA
+# Bem aqui começa o sistema métrico...
+DECADA   = 10 * ANO
+SECULO   = 10 * DECADA
+MILENIO  = 10 * SECULO
+
+
+# == == == == == == == == == == == === == == == == == == == == == == == ===
+#                             Relação ao Tamanho(bytes)
+# == == == == == == == == == == == === == == == == == == == == == == == ===
+def tamanho(valor, unidade: Unidade, sistema: Grandeza,
 acronomo=True) -> str:
    '''
-   Função que retorna um sufixo com a unidade
-   de informação traduzida do melhor modo possível
-   de acordo com a informação passada.
+   Função que retorna um sufixo com a unidade de informação traduzida do
+   melhor modo possível de acordo com a informação passada.
    '''
    if unidade == Unidade.BYTE and sistema == Grandeza.METRICO:
       X = valor
@@ -134,85 +163,74 @@ acronomo=True) -> str:
    else:
       return string
    ...
-...
 
-# constantes com escalas de tempo, com suas
-# equivalências em segundos.
-# A coisa dos múltiplos de submúltiplos são
-# bem confusos, não seguem o sistema
-#métrico... inicialmente!
-miliseg = 1 / 1_000
-microseg = 1 / 10**6
-nanoseg = 1 / 10**9
-picoseg = 1 / 10**12
-minuto = 60
-hora = 60 * minuto
-dia =  24 * hora
-mes = 30 * dia
-ano = 365 * dia
-# bem aqui começa o sistema métrico...
-decada = 10 * ano
-seculo = 10 * decada
-milenio = 10 * seculo
-# Nova notação disponível:
-HORA = hora
-DIA = dia
-
-# Representar o tempo de forma legível,
-# onde converte todos valores passados na
-# ordem de segundos para  minutos, horas
-# décadas, meses, milisegundos, nanosegundos
-# e etc...
-def converte(t: int) -> str:
+# == == == == == == == == == == == === == == == == == == == == == == == ===
+#                             Relação ao Tempo
+# == == == == == == == == == == == === == == == == == == == == == == == ===
+def converte(t: float) -> str:
+   """
+     Representar o tempo de forma legível, onde converte todos valores
+   passados na ordem de segundos para  minutos, horas décadas, meses,
+   milisegundos, nanosegundos e etc...
+   """
    # múltiplos e sub-múltiplos:
-   if t >= picoseg and t < nanoseg:
+   if PICOSEG <= t < NANOSEG:
       grandeza = "picosegundos"
-      return '%0.2f %s' % (t * 10**12, grandeza)
-   elif t >= nanoseg and t < microseg:
+      return '%0.1f %s' % (t * 1.0e12, grandeza)
+   elif NANOSEG <= t < MICROSEG:
       grandeza = 'nanosegundos'
-      return '%0.2f %s' % (t * 10**9, grandeza)
-   elif t >= microseg and t < miliseg:
+      return '%0.1f %s' % (t * 1e9, grandeza)
+   elif MICROSEG <= t < MILISEG:
       grandeza = 'microsegundos'
-      return '%0.2f %s' % (t * 10**6, grandeza)
-   elif t >= miliseg and t < 1:
+      return '%0.2f %s' % (t * 1e6, grandeza)
+   elif MILISEG <= t < 1:
       grandeza = 'milisegundos'
       return '%0.2f %s' % (t * 1000, grandeza)
-   elif t >= 1 and t < 60:
+   elif 1 <= t < 60:
       grandeza = 'segundos'
       return '%0.2f %s' % (t, grandeza)
    elif t > 60 and t < 3600:
       grandeza = 'minutos'
-      return '%0.2f %s' % (t / minuto, grandeza)
-   elif t >= hora and t < dia:
+      return '%0.2f %s' % (t / MINUTO, grandeza)
+   elif t >= HORA and t < DIA:
       grandeza = 'horas'
-      return '%0.2f %s' % (t / hora, grandeza)
-   elif t >= dia and t < mes:
-      return '%0.2f dias'%(t / dia)
-   elif t >= mes and t < ano:
-      return '%0.2f meses' % (t / mes)
-   elif t >= ano and t < decada:
-      return '%0.2f anos' % (t / ano)
-   elif t >= decada and t < seculo:
+      return '%0.2f %s' % (t / HORA, grandeza)
+   elif t >= DIA and t < MES:
+      return '%0.2f dias'%(t / DIA)
+   elif t >= MES and t < ANO:
+      return '%0.2f meses' % (t / MES)
+   elif t >= ANO and t < DECADA:
+      return '%0.2f anos' % (t / ANO)
+   elif t >= DECADA and t < SECULO:
       grandeza = 'décadas'
-      return '%0.2f %s' % (t / decada, grandeza)
-   elif t >= seculo and t < milenio:
+      return '%0.2f %s' % (t / DECADA, grandeza)
+   elif t >= SECULO and t < MILENIO:
       grandeza = 'séculos'
-      return '%0.2f %s' % (t / seculo, grandeza)
-   elif t >= milenio and t < 10 * milenio:
+      return '%0.2f %s' % (t / SECULO, grandeza)
+   elif t >= MILENIO and t < 10 * MILENIO:
       grandeza = 'milênios'
-      return '%0.2f %s' % (t / milenio, grandeza)
+      return '%0.2f %s' % (t / MILENIO, grandeza)
    else:
-      raise Exception("não implementado para tal tamanho!")
-...
+      raise ValueError("não implementado para tal tamanho!")
 
 def tempo(segundos, arredonda=False, acronomo=False) -> str:
-   """
-   conserta o plural em alguns casos, a função
-   original é reescrita
-   """
-   # fazendo a tradução normal.
+   "Faz um valor grande de tempo, dado puramente em segundos, mais legível."
+   # Também aceita outros formatos de tempo reconhecidos em Python.
+   if isinstance(segundos, timedelta):
+      segundos = segundos.total_seconds()
+   elif isinstance(segundos, datetime):
+      agora = datetime.now()
+
+      if segundos < agora:
+         segundos = agora - segundos
+      else:
+         segundos = segundos - agora
+
+      return tempo(segundos, arredonda, acronomo)
+
+   # Fazendo a tradução normal.
    tempo_str = converte(segundos)
-   # deixa no singular se possível.
+   # Deixa no singular se possível.
    tempo_str = transforma_no_singular(tempo_str)
 
    if acronomo and (not arredonda):
@@ -224,39 +242,40 @@ def tempo(segundos, arredonda=False, acronomo=False) -> str:
       return aplica_acronomo(arredondado, True)
    else:
       return tempo_str
-...
 
-
-# mostra o tempo de forma mais detalhada:
-def tempo_detalhado(t):
+def tempo_detalhado(t: str) -> str:
+   """
+   Decompõe uma string representando o tempo, e retorna uma nova com ele
+   mais detalhado.
+   """
    string = tempo(t)
    partes = decompoe(string)
    # apelido para simplificar codificação:
    peso = partes["peso"]
 
    if "minuto" in peso:
-      tempo_seg = minuto * partes["fracao"]
+      tempo_seg = MINUTO * partes["fracao"]
       fracao_legivel = tempo(tempo_seg)
    elif "hora" in peso:
-      tempo_seg = hora * partes["fracao"]
+      tempo_seg = HORA * partes["fracao"]
       fracao_legivel = tempo(tempo_seg, arredonda=True)
    elif "dia" in peso:
-      tempo_seg = dia * partes["fracao"]
+      tempo_seg = DIA * partes["fracao"]
       fracao_legivel = tempo(tempo_seg, arredonda=True)
    elif "meses" in peso or "mês" in peso:
-      tempo_seg = mes * partes["fracao"]
+      tempo_seg = MES * partes["fracao"]
       fracao_legivel = tempo(tempo_seg, arredonda=True)
    elif "ano" in peso:
-      tempo_seg = ano * partes["fracao"]
+      tempo_seg = ANO * partes["fracao"]
       fracao_legivel = tempo(tempo_seg, arredonda=True)
    elif "década" in peso:
-      tempo_seg = decada * partes['fracao']
+      tempo_seg = DECADA * partes['fracao']
       fracao_legivel = tempo(tempo_seg, arredonda=True)
    elif "século" in peso:
-      tempo_seg = seculo * partes['fracao']
+      tempo_seg = SECULO * partes['fracao']
       fracao_legivel = tempo(tempo_seg, arredonda=True)
    elif "milênio" in peso:
-      tempo_seg = milenio * partes['fracao']
+      tempo_seg = MILENIO * partes['fracao']
       fracao_legivel = tempo(tempo_seg, arredonda=True)
    else:
       raise Exception("não implementado para tal ainda!!")
@@ -271,17 +290,14 @@ def tempo_detalhado(t):
          fracao_legivel
       )
    )
-...
 
-Decomposicao = {str: float, str:int, str:str}
-# decompõe em partes a "string de tempo".
 def decompoe(tempo_str: str) -> Decomposicao:
+   "Decompõe em partes a 'string de tempo'."
    partes = tempo_str.split()
    peso = partes.pop()
    valor = partes.pop()
-   # objeto desnecessário, acabando com sua vida
-   # neste momento, sem qualquer chance para o
-   # GB fazer-lô automaticamente.
+   # Objeto desnecessário, acabando com sua vida neste momento, sem 
+   # qualquer chance para o GB fazer-lô automaticamente.
    del partes
 
    try:
@@ -299,10 +315,9 @@ def decompoe(tempo_str: str) -> Decomposicao:
       'inteiro': inteiro,
       'peso': peso
    }
-...
 
-# pega uma 'conversão' e arredonda sua parte inteira
-def arredonda_tempostr(tempo_str):
+def arredonda_tempostr(tempo_str) -> str:
+   "Pega uma 'conversão' e arredonda sua parte inteira."
    partes = decompoe(tempo_str)
    inteiro = partes['inteiro']
    fracao = partes['fracao']
@@ -312,11 +327,9 @@ def arredonda_tempostr(tempo_str):
       inteiro += 1
 
    return "{} {}".format(inteiro, peso)
-...
 
-# pega uma string já em forma legível
-# e encurta seu acrônomo.
-def aplica_acronomo(tempo_str, arredonda):
+def aplica_acronomo(tempo_str: str, arredonda: bool) -> str:
+   "Pega uma string já em forma legível e encurta seu acrônomo. "
    partes = decompoe(tempo_str)
    (i, f, peso) = (
       partes['inteiro'],
@@ -345,7 +358,7 @@ def aplica_acronomo(tempo_str, arredonda):
       peso = "h"
       encostado = True
    elif "década" in peso:
-      peso = 'dec'
+      peso = 'déc'
    elif "milênio" in peso:
       peso = 'mil'
    ...
@@ -358,13 +371,10 @@ def aplica_acronomo(tempo_str, arredonda):
       return "%i%s%s" % (int(valor), espaco, peso)
    else:
       return "%0.2f%s%s" % (valor, espaco, peso)
-...
 
-# transforma 'tempo_str' na forma
-# singular, se este for o caso.
-def transforma_no_singular(tempo_str):
-   # verificando se é o caso que estamos
-   # querendo consertar.
+def transforma_no_singular(tempo_str) -> str:
+   "Transforma 'tempo_str' na forma singular, se este for o caso."
+   # verificando se é o caso que estamos querendo consertar.
    partes = decompoe(tempo_str)
    e_caso_procurado = (
       partes['inteiro'] == 1 and
@@ -383,15 +393,58 @@ def transforma_no_singular(tempo_str):
       # não é o caso, apenas devolve dado.
       return tempo_str
    ...
+
+# == == == == == == == == == == == === == == == == == == == == == == == ===
+#                             Valores Grandes
+# == == == == == == == == == == == === == == == == == == == == == == == ===
+def valor_grande_legivel(numero: int) -> str:
+   if numero >= 1_000 and numero < 1_000_000:
+      return "{:0.1f} mil".format(numero / 1_000)
+   elif  pow(10, 6) <= numero < pow(10, 9):
+      return "{:0.1f} mi".format(numero / pow(10, 6))
+   elif pow(10, 9) <= numero < pow(10, 12):
+      return "{:0.1f} bi".format(numero / pow(10, 9))
+   elif pow(10, 12) <= numero < pow(10, 15):
+      return "{:0.1f} ti".format(numero / pow(10, 9))
+   else:
+      return str(numero)
 ...
 
+def valor_grande_bem_formatado(numero: int) -> str:
+   if numero < 1000:
+      return str(numero)
+   else:
+      forma_inicial = str(numero)
+      resto = len(forma_inicial) % 3
+      forma_inicial = ''.join(['0'*(3 - resto), forma_inicial])
+      # fila para armazenar caractéres temporiamente,
+      # e string para concatenação.
+      fila = []; numero_str = ""
 
-#from testes import executa_teste
+      for c in list(forma_inicial):
+         fila.append(c)
+         # deseja numa classe a formação dos três algs.
+         if len(fila) == 3:
+            numero_str += ' '
+            while len(fila) > 0:
+               numero_str += fila.pop(0)
+         ...
+      ...
+      numero_str += ' '
+      while len(fila) > 0:
+         numero_str += fila.pop(0)
+      return numero_str.lstrip('0 ')
+   ...
+...
+
+# == == == == == == == == == == == === == == == == == == == == == == == ===
+#                          Testes Unitários
+# == == == == == == == == == == == === == == == == == == == == == == == ===
 from random import randint
 from unittest import (TestCase, main)
 
 # testes unitários:
-class Funcoes(TestCase):
+class UnitariosTempo(TestCase):
    def tempoDetalhado(self):
       # valor e peso filtrado:
       string = tempo_detalhado(1_329)
@@ -418,7 +471,7 @@ class Funcoes(TestCase):
       # testando o arredondamento para segundos.
       print(tempo(37.3, arredonda=True))
       print(tempo(27.83, arredonda=True))
-   ...
+
    def arredondaTempostr(self):
       exemplos = [
          "15.3 horas", "3.7 min", "18 segundos",
@@ -427,63 +480,45 @@ class Funcoes(TestCase):
       ]
       for ts in exemplos:
          print(ts, arredonda_tempostr(ts), sep=" ==> ")
-   ...
+
    def tempoComAcronomos(self):
       amostras = [
-         31_899, 192, 1_938, 419_203,
-         41_283, 3_912_822, 47,
-         580_098_523, 92_378_223,
-         1_101_283_283, 5_823, 223/1000,
-         3/10**6, 28/10**9, 84/10**12
+         31_899, 192, 1_938, 419_203, 41_283, 3_912_822, 47,
+         580_098_523, 92_378_223, 1_101_283_283, 5_823, 223/1000,
+         3 * 1e-6, 28 * 1e-9, 84 * 1E-12
       ]
-      for t in amostras:
-         normal = tempo(t)
-         transforma = tempo(t, acronomo = True)
-         print("{} ==> {}".format(normal, transforma))
-      ...
-   ...
-   def runTest(self):
-      self.tempoDetalhado()
-...
-def valor_grande_legivel(numero: int) -> str:
-   if numero >= 1_000 and numero < 1_000_000:
-      return "{:0.1f} mil".format(numero / 1_000)
-   elif  pow(10, 6) <= numero < pow(10, 9):
-      return "{:0.1f} mi".format(numero / pow(10, 6))
-   elif pow(10, 9) <= numero < pow(10, 12):
-      return "{:0.1f} bi".format(numero / pow(10, 9))
-   elif pow(10, 12) <= numero < pow(10, 15):
-      return "{:0.1f} ti".format(numero / pow(10, 9))
-   else:
-      return str(numero)
+
+      for normal in amostras:
+         transforma = tempo(normal, acronomo = True)
+
+         if isinstance(normal, int):
+            print("{:>16d} ==> {}".format(normal, transforma))
+         elif isinstance(normal, float):
+            print("{:>16.12f} ==> {}".format(normal, transforma))
+
+   def conversaoDeTiposPythonicos(self):
+      inputs = [
+         timedelta(microseconds=753), datetime(1977, 5, 13),
+         timedelta(seconds=1000), timedelta(hours=7, minutes=32),
+         datetime(2001, 7, 12, hour=5, minute=42, second=10),
+         # Datetime futuros:
+         datetime(5003, 1, 24, hour=9, minute=12, second=50),
+         datetime(3025, 4, 2),
+         datetime(2500, 11, 10),
+      ]
+
+      for X in inputs:
+         output = tempo(X, acronomo = True)
+         print("\t{}".format(output))
 ...
 
-def valor_grande_bem_formatado(numero: int) -> str:
-   if numero < 1000:
-      return str(numero)
-   else:
-      forma_inicial = str(numero)
-      resto = len(forma_inicial) % 3
-      forma_inicial = ''.join(['0'*(3 - resto), forma_inicial])
-      # fila para armazenar caractéres temporiamente,
-      # e string para concatenação.
-      fila = []; numero_str = ""
-      
-      for c in list(forma_inicial):
-         fila.append(c)
-         # deseja numa classe a formação dos três algs.
-         if len(fila) == 3:
-            numero_str += ' '
-            while len(fila) > 0:
-               numero_str += fila.pop(0)
-         ...
-      ...
-      numero_str += ' '
-      while len(fila) > 0:
-         numero_str += fila.pop(0)
-      return numero_str.lstrip('0 ')
-   ...
-...
+class UnitariosValores(TestCase):
+   def simples_amostra(self):
+      inputs = [15e10, 3.81e7, 35_831, 4991, 32, 781, 1.348291e11]
+
+      for valor in inputs:
+         saida = valor_grande_legivel(valor)
+         print("{:>13.0f} ===> {}".format(valor, saida))
 
 if __name__ == "__main__":
    main()
