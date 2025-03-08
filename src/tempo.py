@@ -5,17 +5,31 @@
  de ter marcos(registros arbitrários) durante a contagem.
 """
 
-from time import (time, time_ns)
-from datetime import timedelta
-from .legivel import (tempo as Tempo)
-import statistics
-
 __all__ = [
    "CronometroParadoError",
    "TempoEsgotadoError",
    "Temporizador",
    "Cronometro"
 ]
+
+# Módulos padrões do Python:
+from time import (time, time_ns)
+from datetime import timedelta
+import statistics
+# Outros módulos da própria biblioteca:
+try:
+   # Partindo que o módulo e tal dependência estão no mesmo diretório.
+   from .legivel import (tempo as Tempo)
+except ImportError:
+   # Tenta importa supondo que está em algum caminho de busca adicionado.
+   try:
+      from legivel import (tempo as Tempo)
+   except:
+      print("__name__:", __name__)
+      raise ImportWarning("problema ainda não resolvido.")
+else: 
+   pass
+finally: pass
 
 
 class TempoEsgotadoError(Exception):
@@ -556,63 +570,6 @@ class CronometroTeste(TestCase):
       self.assertTrue(c < 16.8)
    ...
 ...
-
-
-''' testes obsoletos.
-if __name__ == "__main__":
-   import utilitarios.src.testes as UT
-   from time import sleep
-
-   def strtime_to_seg():
-      argumentos = (
-         "15min", "38 segundos", "3.5 horas",
-         "15.0 min", "38 seg", "3h", "4.53 h",
-         "5.8 min    ", "   89     segundos",
-         "3      hfak",  " 12   dios",
-      )
-      for arg in argumentos:
-         try:
-            conversao = stringtime_to_segundos(arg)
-            print("%s ==> %iseg" % (arg, conversao))
-         except:
-            print("[%s] mal formado!!" % arg)
-         ...
-      ...
-   ...
-
-   def usa_temporizador():
-      t = Temporizador(stringtime_to_segundos("13seg"))
-      while t():
-         porcentagem = t.percentual() * 100
-         print("\r%0.1f%%" % porcentagem, end = '')
-      else:
-         print("esgotado!".upper())
-      ...
-
-      # induzindo ao erro.
-      for _ in range(15):
-         try:
-            print("resultado: ", t())
-         except TempoEsgotadoError():
-            print("induzido com sucesso!")
-            break
-         ...
-      ...
-   ...
-
-   def comparaTemporizador():
-      tempo = stringtime_to_segundos("1.3min")
-      a = Temporizador(tempo)
-      sleep(20)
-      # está em 58seg
-      print("agora têm que ser menor que 59.")
-      assert a < 59
-      print("agora têm que ser menor que 51.")
-      sleep(7)
-      assert a < 51
-   ...
-...
-'''
 
 if __name__ == "__main__":
    main(verbosity=2)
