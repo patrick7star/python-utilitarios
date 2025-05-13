@@ -4,10 +4,13 @@ mesmo, na biblioteca utilitários. Só que agora, com um bom conhecimento
 de algoritmos o processo para gera-lô pode ser mais reduzido.
 """
 
-# o que será exportado:
-__all__ = ["Texto","tabela", "Palavras", "inicializando"]
+# O que será exportado:
+__all__ = [
+   "constroi_str", "Texto", "tabela", "Palavras", "inicializando",
+   "MatrizTexto", "Lados"
+]
 
-# biblioteca padrão do Python:
+# Biblioteca padrão do Python:
 from os import listdir, get_terminal_size
 from os.path import basename,join, dirname, abspath, normpath
 from sys import platform
@@ -20,13 +23,13 @@ from pprint import pprint
 from time import sleep
 from unittest import main, TestCase
 from shutil import rmtree
-# própria biblioteca:
-from src.text.inicializacao import (tabela_de_desenhos, MatrizTexto)
+# Própria biblioteca:
+from src.text.inicializacao import (tabela_de_desenhos, MatrizTexto, Lados)
 
-# mapa contendo todo alfabeto, dígitos, e pontuações... quase todo
+# Mapa contendo todo alfabeto, dígitos, e pontuações... quase todo
 # símbolos na tabela ASCII.
 tabela = {}
-# verifica os símbolos foram carregados.
+# Verifica os símbolos foram carregados.
 CARREGADOS = False
 
 
@@ -36,7 +39,11 @@ def inicializando() -> None:
    tabela = tabela_de_desenhos()
    CARREGADOS = True
 
-def constroi_str(string):
+def constroi_str(string: str) -> MatrizTexto:
+   """
+   Constrói um desenho da string pura, portanto o retorno será uma 'matriz
+   texto', algo que não é muito manipulável ou interativo.
+   """
    # se não for carregado ainda os símbolos, então que seja agora.
    if not CARREGADOS:
       inicializando()
@@ -45,16 +52,15 @@ def constroi_str(string):
    # cópia por indexação do mapa..
    if len(string) == 1:
       return tabela[string]
-   ...
 
    # A fila se explica por os caractéres são lidos da esquerda à
    # direita. E têm que ser formados assim também, ou seja, o primeiro
    # a ser lido, será também o primeiro formado(FIFO).
    fila = SimpleQueue()
+
    for char in string:
       matriz_texto = tabela[char]
       fila.put(matriz_texto)
-   ...
 
    # o algoritmo é o seguinte, remove o primeiro e o usa como base para
    # concatenação do segundo, pegando o resultado o usa como base para
@@ -62,11 +68,12 @@ def constroi_str(string):
    remocao = fila.get()
    resultado = remocao
    ESPACO = MatrizTexto.espaco_caractere()
+
    while not fila.empty():
       nova_remocao = fila.get()
       # resultado = concatena(resultado, nova_remocao)
       resultado = resultado + ESPACO + nova_remocao
-   ...
+
    return resultado
 ...
 
@@ -323,12 +330,6 @@ class Unitarios(TestCase):
       #rmtree("../simbolos")
       print("feito!")
 
-   def construcao_de_string(self):
-      sample = ["bigorna", "pe", "k", "casa-do-queijo", "13/04", "08:38:52"]
-
-      for In in sample:
-         Out = constroi_str(In.upper())
-         print(Out)
 
    def inicializacao_sucedida(self):
       for chave in tabela.keys():
@@ -366,6 +367,38 @@ class Unitarios(TestCase):
       )
       print(t)
       assert True
+
+class FuncaoConstroiStr(TestCase):
+   def construcao_de_strings(self):
+      sample = ["bigorna", "pe", "k", "casa-do-queijo", "13/04", "08:38:52"]
+
+      for In in sample:
+         Out = constroi_str(In.upper())
+         print(Out)
+
+   def formato_do_horario(self):
+      obj = constroi_str("19:39")
+      print(obj)
+
+   def formatacao_de_todos_digitos(self):
+      print(constroi_str("0987654321"))
+
+   def dois_pontos_centralizado() -> MatrizTexto:
+      BRANCO = MatrizTexto.espaco_caractere()
+      sep = constroi_str(":")
+
+      sep.margem(2, Lados.INFERIOR)
+      sep.margem(2, Lados.DIREITO)
+
+      return BRANCO + sep 
+
+   def subida_de_dois_pontos(self):
+      horas = constroi_str("48")
+      minutos = constroi_str("10")
+      segundos = constroi_str("27")
+      separador = FuncaoConstroiStr.dois_pontos_centralizado()
+
+      print(horas + separador + minutos + separador + segundos)
 
 if __name__ == "__main__":
    main()
