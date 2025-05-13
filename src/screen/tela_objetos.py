@@ -6,9 +6,16 @@ Serão chamadas no módulo principal e re-exportados.
 
 from array import array as Array
 import sys
+from enum import (auto, Enum)
 
 # o que será importado.
-__all__ = ["Matriz", "Ponto"]
+__all__ = ["Matriz", "Ponto", "Lados"]
+
+class Lados(Enum):
+   SUPERIOR = auto()
+   DIREITO = auto()
+   INFERIOR = auto()
+   ESQUERDO = auto()
 
 class Matriz:
    def __init__(self, linhas, colunas, grade=False):
@@ -45,6 +52,30 @@ class Matriz:
       acumulado += sys.getsizeof(self._linhas)
       return acumulado + sys.getsizeof(self._celula)
    ...
+
+   def margem(self, n: int, lado: Lados):
+      "Aumenta a margem da figura em 'n' unidades, em alguma lado."
+      QTD = len(self._linhas[0])
+      LINHA_EM_BRANCO = Array('u', QTD * self._celula)
+
+      match lado:
+         case Lados.SUPERIOR:
+            for _ in range(n):
+               copia = LINHA_EM_BRANCO[:]
+               self._linhas.insert(0, copia)
+
+         case Lados.INFERIOR:
+            for _ in range(n):
+               copia = LINHA_EM_BRANCO[:]
+               self._linhas.append(copia)
+
+         case Lados.DIREITO:
+            for subarray in self._linhas:
+               for _ in range(n):
+                  subarray.append(self._celula)
+
+         case _:
+            raise NotImplementedError("ainda não achei utilidade nesta")
 ...
 
 class Ponto:
