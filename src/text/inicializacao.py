@@ -5,16 +5,19 @@ arquivos.
 """
 from unittest import (TestCase)
 from pathlib import (Path)
-from src.tela import (Matriz)
 from typing import Type
+from array import (array as Array)
+from src.tela import (Matriz, Lados)
 
 # O que será exportado:
-__all__ = ["tabela_de_desenhos", "MatrizTexto"]
+__all__ = ["tabela_de_desenhos", "MatrizTexto", "Lados"]
 # Apelido da classe:
 MT = Type['MatrizTexto']
 
 class MatrizTexto(Matriz):
    def __init__(self, altura, largura):
+      # Tenta algo como pontilhado em modo debuggin.
+      #grade = __debug__ if False else True
       grade = False
       super().__init__(altura, largura, grade)
 
@@ -113,6 +116,40 @@ class MatrizTexto(Matriz):
    @staticmethod
    def espaco_palavra() -> MT:
       return MatrizTexto(7, 5)
+
+   def sobe_desenho(self):
+      """
+      Move figura na sua própria grade, na direção vertical, pra cima. Se 
+      não for feita cuidadosamente, ou com tal inteção, é possível que tal 
+      operação corte a figura.
+      """
+      (LINS, COLS) = self.dimensao()
+      # Linha branca no comprimento da atual figura.
+      LINHA_EM_BRANCO = Array('u', COLS * ' ')
+
+      if LINS == 1:
+         raise Exception("Não é possível subir a matriz")
+
+      # Coloca a linha vázia no final da matriz, então retira uma do começo.
+      # Observe que, se não for feito com medida pode cortar uma parte do
+      # desenho.
+      self._linhas.append(LINHA_EM_BRANCO) 
+      self._linhas.pop(0)
+
+   def desce_desenho(self):
+      "Move figura pra baixo, na sua própria grade."
+      (LINS, COLS) = self.dimensao()
+      LINHA_EM_BRANCO = Array('u', COLS * ' ')
+
+      if LINS == 1:
+         raise Exception("não é possível mover figura verticalmente")
+
+      # Operação inversa da 'subida', portanto coloca uma linha no começo, 
+      # e retira uma do fim para equilibrar a dimensão. A observação também
+      # continua válida, se não for feito com cautela, o desenho será 
+      # cortado.
+      self._linhas.insert(0, LINHA_EM_BRANCO)
+      self._linhas.pop()
 
 def aglomerado_de_linhas_do_arquivo(caminho: Path) -> [str]:
    LINHA_EM_BRANCO = "\n\n"
@@ -274,5 +311,4 @@ class Unitarios(TestCase):
       print(Out | (self.TABLE['G'] + self.TABLE['8']))
       print("\n\nSem alteração:\n", Out, end= '\n\n\n')
       pass
-
 
