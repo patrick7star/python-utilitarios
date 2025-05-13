@@ -377,7 +377,8 @@ class FuncaoConstroiStr(TestCase):
          print(Out)
 
    def formato_do_horario(self):
-      obj = constroi_str("19:39")
+      sep = FuncaoConstroiStr.dois_pontos_centralizado()
+      obj = constroi_str("19") + sep + constroi_str("39")
       print(obj)
 
    def formatacao_de_todos_digitos(self):
