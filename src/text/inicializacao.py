@@ -3,16 +3,20 @@
 anterior, que toma diretórios e subdiretórios, cada um com dezenas de 
 arquivos.
 """
+
+# O que será exportado:
+__all__ = ["tabela_de_desenhos", "MatrizTexto", "Lados"]
+
 from unittest import (TestCase)
 from pathlib import (Path)
 from typing import Type
 from array import (array as Array)
 from src.tela import (Matriz, Lados)
+from os import (getenv)
 
-# O que será exportado:
-__all__ = ["tabela_de_desenhos", "MatrizTexto", "Lados"]
 # Apelido da classe:
 MT = Type['MatrizTexto']
+
 
 class MatrizTexto(Matriz):
    def __init__(self, altura, largura):
@@ -165,10 +169,20 @@ def aglomerado_de_linhas_do_arquivo(caminho: Path) -> [str]:
       return trechos
 
 def extrai_o_alfabeto() -> {str: [str]}:
-   caminho = Path("simbolos/alfabeto.txt")
-   lista = aglomerado_de_linhas_do_arquivo(caminho)
-   a = ord('A'); z = ord('Z')
-   letras = map(lambda code: chr(code), range(a, z))
+   try:
+      caminho = Path("simbolos/alfabeto.txt")
+      lista = aglomerado_de_linhas_do_arquivo(caminho)
+   except FileNotFoundError:
+      caminho = Path(getenv("SIMBOLOS_DO_TEXTO"))
+      caminho = caminho.joinpath("alfabeto.txt")
+
+      assert (caminho.exists())
+      assert (caminho.is_file())
+
+      lista = aglomerado_de_linhas_do_arquivo(caminho)
+   finally:
+      a = ord('A'); z = ord('Z')
+      letras = map(lambda code: chr(code), range(a, z))
 
    return { 
       letra: desenho 
@@ -176,19 +190,39 @@ def extrai_o_alfabeto() -> {str: [str]}:
    }
 
 def extrai_os_digitos() -> {str: [str]}:
-   caminho = Path("simbolos/números.txt")
-   lista = aglomerado_de_linhas_do_arquivo(caminho)
-   numeros = range(0, 10)
+   try:
+      caminho = Path("simbolos/números.txt")
+      lista = aglomerado_de_linhas_do_arquivo(caminho)
+   except FileNotFoundError:
+      caminho = Path(getenv("SIMBOLOS_DO_TEXTO"))
+      caminho = caminho.joinpath("números.txt")
+
+      assert (caminho is not None)
+      assert (caminho.exists())
+
+      lista = aglomerado_de_linhas_do_arquivo(caminho)
+   finally:
+      numeros = range(0, 10)
 
    return { digito: desenho for (digito, desenho) in zip(numeros, lista) }
 
 def extrai_a_pontuacao() -> {str: [str]}:
-   pontuacao = [
-      '{', '[', '(', '@', '*', '\\', '$', '^', ':', '!', '}', ']', ')'
-      , '=', '?', '>', '+', '<', '.', ';', '%', '/', '~', '-', '#', ','
-   ]
-   caminho = Path("simbolos/pontuação.txt")
-   lista = aglomerado_de_linhas_do_arquivo(caminho)
+   try:
+      caminho = Path("simbolos/pontuação.txt")
+      lista = aglomerado_de_linhas_do_arquivo(caminho)
+   except FileNotFoundError:
+      caminho = Path(getenv("SIMBOLOS_DO_TEXTO"))
+      caminho = caminho.joinpath("pontuação.txt")
+
+      assert (caminho is not None)
+      assert (caminho.exists())
+
+      lista = aglomerado_de_linhas_do_arquivo(caminho)
+   finally:
+      pontuacao = [
+         '{', '[', '(', '@', '*', '\\', '$', '^', ':', '!', '}', ']', ')'
+         , '=', '?', '>', '+', '<', '.', ';', '%', '/', '~', '-', '#', ','
+      ]
 
    if __debug__:
       print(zip(pontuacao, lista))
