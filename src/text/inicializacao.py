@@ -25,15 +25,6 @@ class MatrizTexto(Matriz):
       grade = False
       super().__init__(altura, largura, grade)
 
-   def dimensao(self):
-      """
-      retorna tupla com a dimensão, onde primeiro valor é a altura, 
-      a segunda é a largura.
-      """
-      qtd_cols = len(self._linhas[0])
-      qtd_lins = len(self._linhas)
-      return (qtd_lins, qtd_cols)
-
    @staticmethod
    def concatena_vertical(a: MT, b: MT) -> MT:
       (bH, bL) = b.dimensao()
