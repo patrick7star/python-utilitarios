@@ -76,6 +76,16 @@ class Matriz:
 
          case _:
             raise NotImplementedError("ainda não achei utilidade nesta")
+
+   def dimensao(self):
+      """
+      retorna tupla com a dimensão, onde primeiro valor é a altura, 
+      a segunda é a largura.
+      """
+      LINS = len(self._linhas)
+      COLS = len(self._linhas[LINS - 2])
+
+      return tuple([LINS, COLS])
 ...
 
 class Ponto:
