@@ -9,7 +9,6 @@ from compileall import (compile_dir)
 from pathlib import (Path)
 from shutil import (rmtree, move)
 from glob import (glob)
-from tarfile import *
 
 
 def recria_diretorios_necessarios() -> None:
@@ -55,12 +54,11 @@ def extracao_do_tarball_se_necessario() -> None:
       assert (not caminho.exists())
 
 # Processo de compilação de vários módulos que compõem a biblioteca. Primeiro,
-# cria o diretório de destino, depois compila eles -- pra ser sincero, a ordem
-# destes dois não importa muito, porém será escrito deste modo. O último passo
-# consiste em renomear ambos os bytes-codes no diretório, posteriormente 
-# mover-lo para o diretório adequado, que no caso aqui é o 'lib'.
+# cria o diretório de destino, depois compila eles -- pra ser sincero, a 
+# ordem destes dois não importa muito, porém será escrito deste modo. O 
+# último passo consiste em renomear ambos os bytes-codes no diretório, 
+# posteriormente mover-lo para o diretório adequado, que no caso aqui é o 
+# 'lib'.
 recria_diretorios_necessarios()
 compila_todas_bibliotecas()
 corrige_nome_e_move_artefatos_pra_lib()
-# Extrai símbolos do 'tarball'.
-extracao_do_tarball_se_necessario()
