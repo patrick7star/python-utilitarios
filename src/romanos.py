@@ -101,11 +101,16 @@ algs_romanos = {1:'i', 4:'iv',  5:'v', 9:'ix', 10:'x', 40:'xl',
                 50:'l', 90:'xc', 100:'c', 400:'cd', 500:'d',
                 900:'cm', 1000:'m'}
 
+ALGARISMOS_ROMANOS = {
+   1:'i', 4:'iv',  5:'v', 9:'ix', 10:'x', 40:'xl', 50:'l', 90:'xc', 
+   100:'c', 400:'cd', 500:'d', 900:'cm', 1000:'m'
+}
+
 #PARTE DO PROGRAMA DESIGNADA PARA
 #A CONVERSÃO DE NÚMEROS DECIMAIS
 #EM ROMANOS.
 
-def decimal_para_romano(n):
+def decimal_para_romano(n: int) -> str:
     '''
         Converte um valor decimal, com números indo-arábes, para a
     nomeclatura romana. Recebe o valor decimal como argumento.
@@ -132,6 +137,9 @@ def decimal_para_romano(n):
         romano += alg
     return romano
 
+# == == == == == == == == == == == === == == == == == == == == == == == === =
+#                 Conversão de Número Romano em Decimal 
+# == == == == == == == == == == == === == == == == == == == == == == == === =
 #PARTE DO PROGRAMA DESIGNADA PARA
 #CONVERSÃO DE NÚMEROS ROMANOS EM
 #RESPECTIVOS DECIMAIS.
@@ -171,12 +179,13 @@ def separa_algs(str0):
     #em lista e concatenar com a outra.
     return tuple(algs + list(str1))
 
-
-def romano_para_decimal(strR):
+def romano_para_decimal_velho(strR):
     '''
         Recebe uma string, representando um número romano, então
     retorna-o seu equivalente decimal(como tipo inteiro).
     '''
+    if (not isinstance(strR, str)):
+       raise TypeError("o número romano tem que ser uma 'str' obviamente")
     #dado o algarismos, que é o valor no dicionário global;
     #a função acha a chave correspondente a este valor
     #e o retorna.
@@ -185,6 +194,163 @@ def romano_para_decimal(strR):
             if c == valor: return chave
     #convertendo todos os algarismos, e o transformando
     #em decimais.
-    valores = [valor_chave(valor) for valor in separa_algs(strR)]
+    valores = [valor_chave(valor) for valor in separa_algs(strR.lower())]
     #somando para obter o decimal.
     return sum(valores)
+
+def separa_algarismos_do_romano(numero: str) -> tuple:
+   """
+     Pega um número romano(uma string), então divide ela em seus respectivos
+   algarismos. Não é uma tarefa trivial, já que tal tipo de número tem uma
+   formação que não segue os sistema decimal posicional.
+
+     Parte da presunção que o número romano é uma lowercase string.
+
+     O algoritmo funciona do seguinte modo. Ele aranca primeiro qualquer
+   algarismo composto que o número em string tenha. Já os pedaços de strings
+   que sobraram, serão apenas compostos de algarismos não-compostos, portanto
+   facilmente divisíveis.
+   """
+   # Duas lista, uma para os algarismos compostos extraídos, e outra para 
+   # os trechos de strings que sobraram.
+   (algs, resto) = ([], [])
+   ALGARISMOS_COMPOSTOS = ('iv', 'ix', 'xl', 'xc', 'cd', 'cm')
+
+   for alg in ALGARISMOS_COMPOSTOS:
+      # Verifica se há o alg. buscado na string formada.
+      if alg in numero:
+         # Repartimo-las, retirando o algarismo achado.
+         resto = numero.split(alg)
+         # Se há, então adiciona na lista de algs.
+         algs.append(alg)
+         # Forma uma nova string com os restos, mas sem o alg. compostos 
+         # retirado. 
+         # Obs.: A concatenção de strings tem efeito nulo no resultado final,
+         #       por isso a função de remoção deles foi descartado, um uso
+         #       desnecessário no uso de CPU.
+         numero = "".join(resto)
+   # Concatena a lista de algarismos-compostos, e converte o que sobre da
+   # número de algarismos únicos, numa grande lista de algarismos, que 
+   # também é convertido em tupla.
+   return tuple(algs + list(numero))
+
+#dado o algarismos, que é o valor no dicionário global;
+#a função acha a chave correspondente a este valor
+#e o retorna.
+def converte_algarismo_pra_decimal(alg: str) -> int:
+   for (chave, valor) in ALGARISMOS_ROMANOS.items():
+      if alg == valor: 
+         return chave
+
+def romano_para_decimal(numero: str) -> int:
+   """
+     Recebe uma string, representando um número romano, então retorna-o 
+   seu equivalente decimal(como tipo inteiro).
+   """
+   if (not isinstance(numero, str)):
+      raise TypeError("o número romano tem que ser uma 'str' obviamente")
+
+   # Convertendo todos os algarismos, e o transformando em decimais, então
+   # soma-os para obter o decimal.
+   numero = numero.lower()
+   conversor = lambda alg: converte_algarismo_pra_decimal(alg)
+   separador = separa_algarismos_do_romano
+
+   return sum(map(conversor, (x for x in separador(numero))))
+
+# == == == == == == == == == == == === == == == == == == == == == == == === =
+#                          Testes Unitários
+# == == == == == == == == == == == === == == == == == == == == == == == === =
+from unittest import (TestCase)
+from random import (randint)
+from pprint import (pprint as PPrint)
+from timeit import (timeit as time_it, repeat)
+import gc
+
+class DecimalPraRomanoUnitarios(TestCase):
+   def setUp(self):
+      TOTAL = randint(5, 15)
+      self.input = [randint(1, 1999) for _ in range(TOTAL)]
+      
+      PPrint(self.input)
+
+   def executa(self):
+      for X in self.input:
+         print("\t\b\b%-4d ===> %10s" % (X, decimal_para_romano(X)))
+
+class DesempenhoEntreFuncoesDPR(TestCase):
+   def setUp(self):
+      self.input = decimal_para_romano(randint(1, 4_999))
+
+   def execucao_com_garbage_collector_ativado(self, QUANTIA: int) -> None:
+      medida_do_novo = time_it(
+         "motor(INPUT)", "ativar()",
+         number = QUANTIA,
+         globals = {
+            "INPUT": self.input, 
+            "motor": romano_para_decimal,
+            "ativar": gc.enable
+         }
+      )
+      medida_do_velho = time_it(
+         "motor(INPUT)", "garbage_collector_on()",
+         number = QUANTIA,
+         globals = {
+            "INPUT": self.input, 
+            "motor": romano_para_decimal_velho,
+            "garbage_collector_on": gc.enable
+         }
+      )
+
+      print("\nPerformance  do algorigmo, 'garbage colector' [ON].")
+      print(medida_do_novo, '<', medida_do_velho, '?')
+
+      if medida_do_velho > medida_do_novo:
+         diferenca = (medida_do_velho - medida_do_novo)
+         percentual = 100.0 * (diferenca / medida_do_velho)
+         print(
+            "A diferença é de %f seg para %d testes, algo em %0.1f%% mais" 
+            " veloz."
+           % (diferenca, QUANTIA, percentual)
+         )
+      else:
+         print("O algoritmo não foi otimizado.")
+      assert(medida_do_novo < medida_do_velho)
+
+   def execucao_sem_o_garbage_collector(self, QUANTIA: int) -> None:
+      medida_do_novo = time_it(
+         "motor(INPUT)", number = QUANTIA,
+         globals = {
+            "INPUT": self.input, 
+            "motor": romano_para_decimal,
+         }
+      )
+      medida_do_velho = time_it(
+         "motor(INPUT)", number = QUANTIA,
+         globals = {
+            "INPUT": self.input, 
+            "motor": romano_para_decimal_velho,
+         }
+      )
+
+      a = medida_do_novo; b = medida_do_velho
+      print("\nPerformance  do algorigmo, 'garbage colector' [OFF].")
+      print("\t{} < {}? {}".format(a, b, a < b))
+
+      if medida_do_velho > medida_do_novo:
+         diferenca = (b - a)
+         percentual = 100.0 * (diferenca / b)
+         print(
+            "A diferença é de %f seg para %d testes, algo em %0.1f%% mais" 
+            " veloz."
+           % (diferenca, QUANTIA, percentual)
+         )
+      else:
+         print("O algoritmo não foi otimizado.")
+      assert(medida_do_novo < medida_do_velho)
+
+   def desempenhos(self):
+      QUANTIA = 6250
+
+      self.execucao_com_garbage_collector_ativado(QUANTIA)
+      self.execucao_sem_o_garbage_collector(QUANTIA)
