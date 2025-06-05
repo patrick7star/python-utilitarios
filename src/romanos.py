@@ -1,92 +1,89 @@
 '''
-    Este programa fará a conversão de números decimais
-em números romanos, e vice-versa. Ele terá duas funções
-em geral, claro, as com o propósito principal
-do programa. A primeira converte um número inteiro positivo
-na notação decimal posicional para a notação romana; já
-a segunda função faz o oposto, de notação romana para
-decimal posicional(mais conhecida como notação indo-árabe).
-    Contará como um monte de passos para produzir isto, ou
-seja, outras funções, mas estas são unicamente complementares
-das funções principais para atingir o objetivo do programa.
-    Os dois algoritmos que vão nos auxiliar em tal tarefa são:
+   Este programa fará a conversão de números decimais em números romanos, e 
+ vice-versa. Ele terá duas funções em geral, claro, as com o propósito 
+ principal do programa. A primeira converte um número inteiro positivo na 
+ notação decimal posicional para a notação romana; já a segunda função faz o 
+ oposto, de notação romana para decimal posicional(mais conhecida como 
+ notação indo-árabe). Contará como um monte de passos para produzir isto, ou 
+ seja, outras funções, mas estas são unicamente complementares das funções 
+ principais para atingir o objetivo do programa.
+   Os dois algoritmos que vão nos auxiliar em tal tarefa são:
 
-CONVERSÃO DE DECIMAIS PARA ROMANOS - O algoritmo
-consiste no seguinte, subtrair o valor decimal até atingir zero.
-Mas o que será subtraído é, o valor decimal dos algarismos
-romanos disponíveis, estes numa variável global. Ele começa
-a verificar o "algarismo romano" mais adequado para subtração
-da maior ordem, e vai de cima para baixo, até achar um
-algarismo(com seu respectivo valor decimal) que seja menor, ou
-igual a tal valor. Feito isto, subtrai o valor decimal dele, enquanto
-adiciona numa lista de forma paralela o algarismos romano
-equivalente ao subtraído. Quando feito isto uma vez, faz novamente
-se preciso, até que este algarismo achado seja maior que
-o valor restante, se não for mais, busca o próximo algarismo
-romano que cumpri a tarefa, que será concerteza menor que o
-anterior. E este processo continua até o valor atinja zero. Veja
-exemplos abaixo da tarefa:
+   CONVERSÃO DE DECIMAIS PARA ROMANOS - O algoritmo consiste no seguinte, 
+ subtrair o valor decimal até atingir zero. Mas o que será subtraído é, o 
+ valor decimal dos algarismos romanos disponíveis, estes numa variável 
+ global. Ele começa a verificar o "algarismo romano" mais adequado para 
+ subtração da maior ordem, e vai de cima para baixo, até achar um algarismo
+ (com seu respectivo valor decimal) que seja menor, ou igual a tal valor. 
+ Feito isto, subtrai o valor decimal dele, enquanto adiciona numa lista de 
+ forma paralela o algarismos romano equivalente ao subtraído. Quando feito 
+ isto uma vez, faz novamente se preciso, até que este algarismo achado seja 
+ maior que o valor restante, se não for mais, busca o próximo algarismo 
+ romano que cumpri a tarefa, que será concerteza menor que o anterior. E 
+ este processo continua até o valor atinja zero. Veja exemplos abaixo da 
+ tarefa:
 
-84 --> 34 --> 24 --> 14 --> 4 --> 0; subtraído 50(L), o maior
-algarismo romano, com um "peso" menor que oitenta e quatro.
-E, é adicionado um 'L', verifica se 'L' é possível novamente
-subtrair, se não for, então vai ao próximo menor ou igual ao
-restante do valor, este trinta e quatro. O 50(L) não é possível,
-nem seu sucessor, ou antecessor 40(XL)..., más o próximo a
-ele, que é o dez(X) sim. Subtraímos dez(X), adicionando o
-correspondente romano na lista,  o restante fica vinte e quatro,
-verificamos se ainda cumpri o requisito, ser o maior valor "romano"
-menor que o atual restante. E sim, cumpri então subtraímos dez novamete,
-adicionando também o símbolo romano de forma paralela. O processo
-continua, mais um dez(X) é tirado, e o símbolo correspondente romano
-adicionado; o restante, agora quatro(IV), não podemos tirar mais dez(X)
-buscamos outro, o mais adequado é o 4(IV[sim, tem este algarismo]),
-então assim fazemos, e chegamos ao final buscado, o restante igual à
-zero. Os símbolos adicionados na lista durante todo procedimento é
-L, X, X, X, IV; que combinados dá exatamente o valor romano que
-queríamos transformar.
+                  84 --> 34 --> 24 --> 14 --> 4 --> 0; 
 
-532 --> 32 --> 22 --> 12 --> 2 --> 1 --> 0; Este aqui demonstrado
-de forma mais rápida. Buscamos o maior romano menor a respectivo
-valor decimal, que é 500(D), então subtraímos; não servindo mais
-procuramos outro para o atual valor trinta e dois, o mais adequado
-é dez(X), assim fazemos, subtraindo dez(X) e adicionando aos
-símbolos na lista; como continua o adequado, fazemos mais duas
-vezes; o restante é agora apenas dois, dez(X) não é menor ou igual
-a ele, nem nove(IX), quatro(IV) ou cinco(V), más, um(I) é, subtraímos
-um(I), e mais uma vez para zerar o restante.  Os símbolos restantes
-que foram adicionados a listas são D, X, X, X, I e I. Estes agrupados
-nesta ordem mesmo resultam no romano buscado.
+ subtraído 50(L), o maior algarismo romano, com um "peso" menor que oitenta 
+ e quatro. E, é adicionado um 'L', verifica se 'L' é possível novamente 
+ subtrair, se não for, então vai ao próximo menor ou igual ao restante do 
+ valor, este trinta e quatro. O 50(L) não é possível, nem seu sucessor, ou 
+ antecessor 40(XL)..., más o próximo a ele, que é o dez(X) sim. Subtraímos 
+ dez(X), adicionando o correspondente romano na lista,  o restante fica 
+ vinte e quatro, verificamos se ainda cumpri o requisito, ser o maior 
+ valor "romano" menor que o atual restante. E sim, cumpri então subtraímos 
+ dez novamete, adicionando também o símbolo romano de forma paralela. O 
+ processo continua, mais um dez(X) é tirado, e o símbolo correspondente 
+ romano adicionado; o restante, agora quatro(IV), não podemos tirar mais dez
+ (X) buscamos outro, o mais adequado é o 4(IV[sim, tem este algarismo]), 
+ então assim fazemos, e chegamos ao final buscado, o restante igual à zero. 
+ Os símbolos adicionados na lista durante todo procedimento é L, X, X, X, 
+ IV; que combinados dá exatamente o valor romano que queríamos transformar.
 
-2129 --> 0129 --> 029 --> 29 --> 19 --> 9 --> 0; Este aqui, descrevemos
-de forma ainda mais simples. Tiramos mil(M), e mais um milhar(M); Agora
-tiramos uma centena(C), então resta apenas vinte e nove; subtraía
-dez(X), e como ainda pode, mais dez(X); restam miseros nove(IX) que
-tem exatamente um correspondente romano equivalendo inteiramente
-este resto. O zero foi alcançado, se combinar todos símbolos usados
-fica com MMCXXIX.
+               532 --> 32 --> 22 --> 12 --> 2 --> 1 --> 0; 
 
-CONVERSÃO DE ROMANOS PARA DECIMAIS: Este procedimento
-é mais simples. Vamos primeiro, fazer uma busca no número buscando
-por algarismos romanos compostos, já que estes, se buscado posteriormente
-podem destruir a estrutura do número. Feito isso, buscamos pelos
-demais. O algoritmo fica em simplesmente, pegar tais algarismos de modo
-separado, colocar seus respectivos "pesos" decimais e somar tudo obtendo
-o valor decimal. Exemplos:
+ Este aqui demonstrado de forma mais rápida. Buscamos o maior romano menor 
+ a respectivo valor decimal, que é 500(D), então subtraímos; não servindo 
+ mais procuramos outro para o atual valor trinta e dois, o mais adequado é 
+ dez(X), assim fazemos, subtraindo dez(X) e adicionando aos símbolos na 
+ lista; como continua o adequado, fazemos mais duas vezes; o restante é 
+ agora apenas dois, dez(X) não é menor ou igual a ele, nem nove(IX), quatro
+ (IV) ou cinco(V), más, um(I) é, subtraímos um(I), e mais uma vez para zerar 
+ o restante.  Os símbolos restantes que foram adicionados a listas são D, X, 
+ X, X, I e I. Estes agrupados nesta ordem mesmo resultam no romano buscado.
 
-DXXIX --> IX(9); D(500); X(10) e X(10); vamos primeiro busca algarismos
-compostos na string, se houver algum é claro, se não, o procedimento
-fica ainda mais simples. Feito isso fatiamos ela em várias partes, estas
-reconheciveis, pois "indexar" no dicionário, nos dá seu respectivo valor
-decimal. O resto da tarefa consiste em apenas somar: 9 + 500 + 10 + 10
-que é igual 529. Os compostos tem que ser buscado primeiro, pois se
-nãofizermos, poderíamos acabar obtendo I(1) e X(10) como dois
-algarimos distintos, resultando numa resposta errada no final.
+         2129 --> 0129 --> 029 --> 29 --> 19 --> 9 --> 0; 
 
-MMCDXCIV --> M(1000); M(1000); CD(400); XC(90) e IV(4). Novamente,
-primeiros buscamos algarismos compostos, e este número é cheio deles;
-depois os demais(apenas dois aqui[e, ainda iguais]). Achamos seus respectivos
-valores decimais e somamos, muito simples não?!: 2x1000 + 400 + 90 + 4 = 2494.
+ Este aqui, descrevemos de forma ainda mais simples. Tiramos mil(M), e mais 
+ um milhar(M); Agora tiramos uma centena(C), então resta apenas vinte e nove;
+ subtraía dez(X), e como ainda pode, mais dez(X); restam miseros nove(IX) que
+ tem exatamente um correspondente romano equivalendo inteiramente este resto.
+ O zero foi alcançado, se combinar todos símbolos usados fica com MMCXXIX.
+
+   CONVERSÃO DE ROMANOS PARA DECIMAIS: Este procedimento é mais simples. 
+ Vamos primeiro, fazer uma busca no número buscando por algarismos romanos 
+ compostos, já que estes, se buscado posteriormente podem destruir a 
+ estrutura do número. Feito isso, buscamos pelos demais. O algoritmo fica 
+ em simplesmente, pegar tais algarismos de modo separado, colocar seus 
+ respectivos "pesos" decimais e somar tudo obtendo o valor decimal. Exemplos:
+
+            DXXIX --> IX(9); D(500); X(10) e X(10); 
+
+ vamos primeiro busca algarismos compostos na string, se houver algum é 
+ claro, se não, o procedimento fica ainda mais simples. Feito isso fatiamos 
+ ela em várias partes, estas reconheciveis, pois "indexar" no dicionário, nos
+ dá seu respectivo valor decimal. O resto da tarefa consiste em apenas somar:
+ 9 + 500 + 10 + 10 que é igual 529. Os compostos tem que ser buscado 
+ primeiro, pois se nãofizermos, poderíamos acabar obtendo I(1) e X(10) como 
+ dois algarimos distintos, resultando numa resposta errada no final.
+
+         MMCDXCIV --> M(1000); M(1000); CD(400); XC(90) e IV(4).
+
+ Novamente, primeiros buscamos algarismos compostos, e este número é cheio 
+ deles; depois os demais(apenas dois aqui[e, ainda iguais]). Achamos seus 
+ respectivos valores decimais e somamos, muito simples não?!: 
+                  2x1000 + 400 + 90 + 4 = 2494.
 '''
 #definindo o que será ou não importado.
 __all__ = ["decimal_para_romano","romano_para_decimal"]
@@ -106,11 +103,10 @@ ALGARISMOS_ROMANOS = {
    100:'c', 400:'cd', 500:'d', 900:'cm', 1000:'m'
 }
 
-#PARTE DO PROGRAMA DESIGNADA PARA
-#A CONVERSÃO DE NÚMEROS DECIMAIS
-#EM ROMANOS.
-
-def decimal_para_romano(n: int) -> str:
+# == == == == == == == == == == == === == == == == == == == == == == == === =
+#                 Conversão de Número Decimal em Romanos 
+# == == == == == == == == == == == === == == == == == == == == == == == === =
+def decimal_para_romano_velho(n: int) -> str:
     '''
         Converte um valor decimal, com números indo-arábes, para a
     nomeclatura romana. Recebe o valor decimal como argumento.
@@ -137,13 +133,36 @@ def decimal_para_romano(n: int) -> str:
         romano += alg
     return romano
 
+def adequado(x):
+  #lista todos valores do dício em ordem inversa
+  #buscar o valor anexado aos algarismos, mais adequado.
+  for valor in list(algs_romanos. keys())[::-1]:
+      if valor <= x: 
+         return valor
+
+def decimal_para_romano(n: int) -> str:
+   '''
+     Converte um valor decimal, com números indo-arábes, para a nomeclatura 
+   romana.
+   '''
+   # Uma cópia do parâmetro para ser excessivamente modificado. Também a 
+   # fila de algarismos a pegarem algarismos decimais convertidos.
+   (resto, algarismos) = (n, [])
+
+   while resto > 0:
+      # Retorno da função que acha valor adequado a subtrair.
+      X = adequado(resto)
+      # Adicionando alg. correspondente ao valor subtraido.
+      Y = ALGARISMOS_ROMANOS[X]
+      algarismos.append(Y.upper())
+      # Fazendo subtração a fim de tentar zero 'resto'.
+      resto  = resto - X 
+
+   return "".join(algarismos)
+
 # == == == == == == == == == == == === == == == == == == == == == == == === =
 #                 Conversão de Número Romano em Decimal 
 # == == == == == == == == == == == === == == == == == == == == == == == === =
-#PARTE DO PROGRAMA DESIGNADA PARA
-#CONVERSÃO DE NÚMEROS ROMANOS EM
-#RESPECTIVOS DECIMAIS.
-
 def separa_algs(str0):
     #1ª função local.
     def concatena_str(lista):
@@ -274,13 +293,15 @@ class DecimalPraRomanoUnitarios(TestCase):
       
       PPrint(self.input)
 
-   def executa(self):
+   def runTest(self):
       for X in self.input:
          print("\t\b\b%-4d ===> %10s" % (X, decimal_para_romano(X)))
 
-class DesempenhoEntreFuncoesDPR(TestCase):
+class DesempenhoEntreFuncoesRPD(TestCase):
    def setUp(self):
-      self.input = decimal_para_romano(randint(1, 4_999))
+      self.input        = decimal_para_romano(randint(1, 4_999))
+      self.motor_novo   = romano_para_decimal
+      self.motor_velho  = romano_para_decimal_velho
 
    def execucao_com_garbage_collector_ativado(self, QUANTIA: int) -> None:
       medida_do_novo = time_it(
@@ -288,7 +309,7 @@ class DesempenhoEntreFuncoesDPR(TestCase):
          number = QUANTIA,
          globals = {
             "INPUT": self.input, 
-            "motor": romano_para_decimal,
+            "motor": self.motor_novo,
             "ativar": gc.enable
          }
       )
@@ -297,7 +318,7 @@ class DesempenhoEntreFuncoesDPR(TestCase):
          number = QUANTIA,
          globals = {
             "INPUT": self.input, 
-            "motor": romano_para_decimal_velho,
+            "motor": self.motor_velho,
             "garbage_collector_on": gc.enable
          }
       )
@@ -322,14 +343,14 @@ class DesempenhoEntreFuncoesDPR(TestCase):
          "motor(INPUT)", number = QUANTIA,
          globals = {
             "INPUT": self.input, 
-            "motor": romano_para_decimal,
+            "motor": self.motor_novo,
          }
       )
       medida_do_velho = time_it(
          "motor(INPUT)", number = QUANTIA,
          globals = {
             "INPUT": self.input, 
-            "motor": romano_para_decimal_velho,
+            "motor": self.motor_velho,
          }
       )
 
@@ -354,3 +375,12 @@ class DesempenhoEntreFuncoesDPR(TestCase):
 
       self.execucao_com_garbage_collector_ativado(QUANTIA)
       self.execucao_sem_o_garbage_collector(QUANTIA)
+
+class DesempenhoEntreFuncoesDPR(DesempenhoEntreFuncoesRPD):
+   def setUp(self): 
+      self.input        = randint(1, 4999) 
+      self.motor_velho  = decimal_para_romano_velho
+      self.motor_novo   = decimal_para_romano
+
+   def runTest(self):
+      self.desempenhos()
