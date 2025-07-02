@@ -25,36 +25,48 @@ __all__ = [
 ]
 
 # Acessando diretório com códigos...
-from sys import path
-from os import getenv, system, remove
-from os.path import join, abspath, dirname, exists
-import enum, sys
+from sys import (path as PathSearch)
+from os import (getenv, system, remove)
+from os.path import (join, abspath, dirname, exists)
 from pathlib import Path
+import enum, sys
+
+# Adicionando o diretório do projeto no search.
+caminho_do_script = Path(PathSearch[0])
+caminho_da_lib = caminho_do_script.parent
+caminho_stringficado = str(caminho_da_lib)
+PathSearch.insert(0, caminho_stringficado)
+#PathSearch.append(caminho_stringficado)
 
 # Tentando importar...
 try:
-   import progresso 
-   import impressao 
-   import espiral  
    import legivel 
-   from utiltarios import romanos
+   import impressao 
+   import progresso 
+   import espiral  
+   import romanos
    # Sendo renomeada com a versão otimizada, pelo menos até o momento.
-   import src.tela         as tela
-   import src.arvore       as arvore
-   import src.extenso      as extenso
-   import src.impressao    as impressao
+   import tela
+   import arvore
+   import extenso
+   import impressao
    #import src.tabelas as tabelas
-   import src.texto        as texto
-   import src.tempo        as tempo
+   import texto
+   import tempo
    # Não usado muito, então dado como descontinuado.
-   import src.aritimetica  as aritimetica
+   import aritimetica
 except ModuleNotFoundError:
+   if __debug__:
+      print("Meu atual diretório: %s" % str(Path.cwd()), end="\n\n")
+      print(PathSearch)
    print(
       "Provavelmente o módulo não foi encontrado por que isso é uma "   +
       "biblioteca externa, e pra reduzir a cadeia de árquivos ele foi " +
       "bastante reduzido, ao menos aqueles arquivos(módulos) que não "  + 
       "tem depedencia de cadeia"
    )
+else:
+   print("Todos módulos foram importados com sucesso.")
 
 
 # Computa o tipo de dado que é o objeto passado, por exemplo: Classe, 
@@ -130,6 +142,27 @@ def todos_modulos_importados_manualmente() -> list:
           map(lambda mod: (mod, str(mod)), sys.modules)
    ))))
 
+def todos_modulos_importados_manualmente() -> list:
+   """
+   Listagem, partindo do presuposto que os módulos importados estão no 
+   diretório principal do projeto.
+   """
+   iteracao_dos_modulos = sys.modules.values()
+   lista_dos_modulos = list(iteracao_dos_modulos)
+   caminho_do_script = PathSearch[1]
+   diretorio_da_lib = Path(caminho_do_script).parent
+   modulos_carregados = []
+
+   for modulo in lista_dos_modulos:
+      pattern = str(diretorio_da_lib)
+
+      try:
+         if modulo.__file__.startswith(pattern):
+            modulos_carregados.append(modulo)
+      except:
+         if __debug__:
+            print("Não funcionou com '%s'." % modulo.__name__)
+   return modulos_carregados
 
 if __name__ == "__main__":
    MODULOS_EXTRAIDOS = todos_modulos_importados_manualmente()
@@ -142,6 +175,9 @@ if __name__ == "__main__":
    print("\nImportando módulos ...\n")
 
    for In in MODULOS_EXTRAIDOS:
+      if In.__name__ == '__main__':
+         continue
+
       try:
          listagem_do_modulo(In)
       except AttributeError:
