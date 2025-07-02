@@ -5,7 +5,8 @@
 from os import get_terminal_size
 from sys import platform, getsizeof
 # re-exportando.
-from src.screen.tela_objetos import *
+#from src.screen.tela_objetos import *       trocado!
+from screen.tela_objetos import *
 
 # determinando o que será importado.
 __all__ = ["Tela", "Ponto", "Matriz"]

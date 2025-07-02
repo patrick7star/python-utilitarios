@@ -21,10 +21,9 @@ from pathlib import PosixPath
 import tarfile
 from pprint import pprint
 from time import sleep
-from unittest import main, TestCase
 from shutil import rmtree
 # Própria biblioteca:
-from src.text.inicializacao import (tabela_de_desenhos, MatrizTexto, Lados)
+from text.inicializacao import (tabela_de_desenhos, MatrizTexto, Lados)
 
 # Mapa contendo todo alfabeto, dígitos, e pontuações... quase todo
 # símbolos na tabela ASCII.
@@ -318,6 +317,10 @@ def traduz_chaves_incossistentes() -> None:
       del tabela[velha]
    ...
 
+# == == == == == == == == == == == === == == == == == == == == == == == ===
+#                          Testes Unitários 
+# == == == == == == == == == == == === == == == == == == == == == == == ===
+from unittest import main, TestCase
 
 class Unitarios(TestCase):
    def setUp(self):
@@ -368,7 +371,71 @@ class Unitarios(TestCase):
       print(t)
       assert True
 
+class InicializacaoSucedida(TestCase):
+   def setUp(self):
+      print("extraindo o diretório necessário...", end='')
+      inicializando()
+      print("feito!")
+
+   def tearDown(self):
+      print("removendo diretório extraido...", end="")
+      #rmtree("../simbolos")
+      print("feito!")
+
+   def runTest(self):
+      for chave in tabela.keys():
+         if type(chave) == str:
+            print("chave: %s" % (chave.upper()))
+         else:
+            print("chave: %i" % chave)
+         print(tabela[chave], end="\n\n")
+
+      assert CARREGADOS
+      self.assertTrue(CARREGADOS)
+
+class ClassePalavras(TestCase):
+   def setUp(self):
+      print("extraindo o diretório necessário...", end='')
+      inicializando()
+      print("feito!")
+
+   def tearDown(self):
+      print("removendo diretório extraido...", end="")
+      #rmtree("../simbolos")
+      print("feito!")
+
+   def runTest(self):
+      objeto = Palavras(
+         "there she goes there she goes " +
+         "again and for you my friend " +
+         "refrain you know"
+      )
+      for palavra in objeto:
+         print(palavra)
+         print(palavra[0])
+         sleep(1.5)
+      ...
+      assert "there" in objeto
+      assert "my" in objeto
+      assert not("out" in objeto)
+      assert len(objeto) == 15
+      assert objeto[5][1] == "goes"
+      assert objeto[11][1] == "friend"
+
+class ClasseTexto(ClassePalavras):
+   def runTest(self):
+      t = Texto(
+         "visual code is worster than i thought before use it." +
+         " You dont think either?!"
+      )
+      print(t)
+      assert True
+
 class FuncaoConstroiStr(TestCase):
+   """
+   Todo o processo de construção de um relógio. Portanto, um exemplo simples
+   de como usar a função 'constroi_str'.
+   """
    def construcao_de_strings(self):
       sample = ["bigorna", "pe", "k", "casa-do-queijo", "13/04", "08:38:52"]
 
@@ -400,6 +467,9 @@ class FuncaoConstroiStr(TestCase):
       separador = FuncaoConstroiStr.dois_pontos_centralizado()
 
       print(horas + separador + minutos + separador + segundos)
+
+   def runTest(self):
+      self.subida_de_dois_pontos()
 
 if __name__ == "__main__":
    main()

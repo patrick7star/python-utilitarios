@@ -8,7 +8,8 @@ import threading
 from time import sleep, time
 from os import get_terminal_size
 # meus módulos:
-from src.legivel import tamanho
+#from src.legivel import tamanho
+from legivel import (tamanho)
 
 # dados:
 TEXTO_MOLDE = "{0:>{espaco}} de {1}: [{2}]{3:>5.1f}%"

@@ -6,7 +6,8 @@ Tipos de visualização de qualquer lista de elementos que for passada.
 __all__ = ["listagem", "escada", "silhueta"]
 
 # meu módulos:
-from src.tree.arvore_old import matriciar_string
+#from src.tree.arvore_old import matriciar_string
+from tree.arvore_old import (matriciar_string)
 # biblioteca do Python:
 from copy import deepcopy
 from shutil import get_terminal_size
