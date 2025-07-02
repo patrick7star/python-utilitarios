@@ -7,12 +7,14 @@ arquivos.
 # O que será exportado:
 __all__ = ["tabela_de_desenhos", "MatrizTexto", "Lados"]
 
-from unittest import (TestCase)
+# Biblioteca padrão do Python:
 from pathlib import (Path)
 from typing import Type
 from array import (array as Array)
-from src.tela import (Matriz, Lados)
 from os import (getenv)
+# Objetos da própria biblioteca:
+#from src.tela import (Matriz, Lados)     trocado!
+from tela import (Matriz, Lados)
 
 # Apelido da classe:
 MT = Type['MatrizTexto']
@@ -250,6 +252,10 @@ def tabela_de_desenhos() -> dict[str: MatrizTexto]:
 
    return output
 
+# == == == == == == == == == == == === == == == == == == == == == == == ===
+#                          Testes Unitários 
+# == == == == == == == == == == == === == == == == == == == == == == == ===
+from unittest import (TestCase)
 
 class Unitarios(TestCase):
    def setUp(self):
