@@ -11,7 +11,7 @@ __all__ = [
 ]
 
 # Biblioteca padrão do Python:
-from os import listdir, get_terminal_size
+from os import (listdir, get_terminal_size, environ)
 from os.path import basename,join, dirname, abspath, normpath
 from sys import platform
 from queue import Queue, SimpleQueue
@@ -74,7 +74,6 @@ def constroi_str(string: str) -> MatrizTexto:
       resultado = resultado + ESPACO + nova_remocao
 
    return resultado
-...
 
 class Palavras:
    "iterador de palavras e demais dados ao formar a frase"
@@ -149,7 +148,6 @@ def clona_fila(fila):
       qtd -= 1
    ...
    return fila_clone
-...
 
 class Texto:
    def __init__(self, texto, align=None):
@@ -228,7 +226,6 @@ class Texto:
 
       # matrix-texto para string.
       return str(self._texto)
-...
 
 def simbolos_estao_disponiveis() -> bool:
    diretorio_com_simbolos = PosixPath("../simbolos/")
@@ -253,7 +250,6 @@ def simbolos_estao_disponiveis() -> bool:
    else:
       print("a existência do diretório 'símbolos já é o suficiente.'")
       return diretorio_com_simbolos.exists()
-...
 
 def equivalente(nome_do_desenho: str) -> chr:
    match nome_do_desenho:
@@ -321,6 +317,7 @@ def traduz_chaves_incossistentes() -> None:
 #                          Testes Unitários 
 # == == == == == == == == == == == === == == == == == == == == == == == ===
 from unittest import main, TestCase
+from random import (randint)
 
 class Unitarios(TestCase):
    def setUp(self):
@@ -470,6 +467,55 @@ class FuncaoConstroiStr(TestCase):
 
    def runTest(self):
       self.subida_de_dois_pontos()
+
+class FuncaoConstroiStrHorarios(FuncaoConstroiStr):
+   def runTest(self):
+      (h, min, seg) = (
+         "%02d" % randint(0, 24),
+         "%02d" % randint(0, 59),
+         "%02d" % randint(0, 59)
+      )
+      horas     = constroi_str(h)
+      minutos   = constroi_str(min)
+      segundos  = constroi_str(seg)
+      separador = FuncaoConstroiStr.dois_pontos_centralizado()
+
+      print(horas + separador + minutos + separador + segundos)
+
+class ConstroiHorario(TestCase):
+   def setUp(self):
+      VAR = "SIMBOLOS_DO_TEXTO"
+
+      if VAR not in environ:
+         print("\nDefina uma novo pacote de símbolos em '%s'!\n" % VAR)
+      self.assertTrue(VAR in environ)
+
+   def dois_pontos() -> MatrizTexto:
+      BRANCO = MatrizTexto.espaco_caractere()
+      sep = constroi_str(":")
+
+      #sep.margem(2, Lados.INFERIOR)
+      sep.margem(1, Lados.DIREITO)
+
+      return BRANCO + sep
+
+   def componentes() -> (str, str, str):
+      return (
+         "%02d" % randint(0, 24),
+         "%02d" % randint(0, 59),
+         "%02d" % randint(0, 59)
+      )
+
+   def runTest(self):
+      (h, min, seg) = ConstroiHorario.componentes()
+      SEP = ConstroiHorario.dois_pontos()
+      (horas, minutos, segundos) = (
+         constroi_str(h),
+         constroi_str(min),
+         constroi_str(seg)
+       )
+
+      print(horas + SEP + minutos + SEP + segundos)
 
 if __name__ == "__main__":
    main()
