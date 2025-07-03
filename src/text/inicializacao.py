@@ -1,6 +1,6 @@
 """
   Método que carrega símbolos, estes agora mais concatenados do que o modo
-anterior, que toma diretórios e subdiretórios, cada um com dezenas de 
+anterior, que toma diretórios e subdiretórios, cada um com dezenas de
 arquivos.
 """
 
@@ -18,7 +18,10 @@ from tela import (Matriz, Lados)
 
 # Apelido da classe:
 MT = Type['MatrizTexto']
-
+# Caminho comum a símbolos simples. Parte da presunção que o código está
+# sendo executado à partir do diretório da biblioteca.
+SIMBOLOS_NORMAIS = Path("./simbolos/normal")
+CAMINHO_EXTERNO = getenv("SIMBOLOS_DO_TEXTO")
 
 class MatrizTexto(Matriz):
    def __init__(self, altura, largura):
@@ -48,7 +51,7 @@ class MatrizTexto(Matriz):
       return resultado
 
    @staticmethod
-   def concatena_horizontal(mt1: MT, mt2: MT) -> MT: 
+   def concatena_horizontal(mt1: MT, mt2: MT) -> MT:
       (a1, l1) = mt1.dimensao()
       (a2, l2) = mt2.dimensao()
       diferenca = abs(a1-a2)
@@ -105,19 +108,19 @@ class MatrizTexto(Matriz):
          partes.clear()
 
       return "\n".join(fitas)
-   
+
    @staticmethod
    def espaco_caractere() -> MT:
       return MatrizTexto(7, 2)
-   
+
    @staticmethod
    def espaco_palavra() -> MT:
       return MatrizTexto(7, 5)
 
    def sobe_desenho(self):
       """
-      Move figura na sua própria grade, na direção vertical, pra cima. Se 
-      não for feita cuidadosamente, ou com tal inteção, é possível que tal 
+      Move figura na sua própria grade, na direção vertical, pra cima. Se
+      não for feita cuidadosamente, ou com tal inteção, é possível que tal
       operação corte a figura.
       """
       (LINS, COLS) = self.dimensao()
@@ -130,7 +133,7 @@ class MatrizTexto(Matriz):
       # Coloca a linha vázia no final da matriz, então retira uma do começo.
       # Observe que, se não for feito com medida pode cortar uma parte do
       # desenho.
-      self._linhas.append(LINHA_EM_BRANCO) 
+      self._linhas.append(LINHA_EM_BRANCO)
       self._linhas.pop(0)
 
    def desce_desenho(self):
@@ -141,12 +144,13 @@ class MatrizTexto(Matriz):
       if LINS == 1:
          raise Exception("não é possível mover figura verticalmente")
 
-      # Operação inversa da 'subida', portanto coloca uma linha no começo, 
+      # Operação inversa da 'subida', portanto coloca uma linha no começo,
       # e retira uma do fim para equilibrar a dimensão. A observação também
-      # continua válida, se não for feito com cautela, o desenho será 
+      # continua válida, se não for feito com cautela, o desenho será
       # cortado.
       self._linhas.insert(0, LINHA_EM_BRANCO)
       self._linhas.pop()
+
 
 def aglomerado_de_linhas_do_arquivo(caminho: Path) -> [str]:
    LINHA_EM_BRANCO = "\n\n"
@@ -155,7 +159,7 @@ def aglomerado_de_linhas_do_arquivo(caminho: Path) -> [str]:
       conteudo = arquivo.read()
       trechos = conteudo.split(LINHA_EM_BRANCO)
       # Adicionando simples quebra-de-linha na string do final da lista.
-      # Isso para manter uma certa simetria, é importante em futuros 
+      # Isso para manter uma certa simetria, é importante em futuros
       # algoritmos que processe tal tipo de dado.
       trechos = [s + '\n' for s in trechos]
 
@@ -163,8 +167,11 @@ def aglomerado_de_linhas_do_arquivo(caminho: Path) -> [str]:
 
 def extrai_o_alfabeto() -> {str: [str]}:
    try:
-      caminho = Path("simbolos/alfabeto.txt")
-      lista = aglomerado_de_linhas_do_arquivo(caminho)
+      if CAMINHO_EXTERNO is None:
+         caminho = SIMBOLOS_NORMAIS.joinpath("alfabeto.txt")
+      else:
+         caminho = Path(CAMINHO_EXTERNO)
+         caminho = caminho.joinpath("alfabeto.txt")
    except FileNotFoundError:
       caminho = Path(getenv("SIMBOLOS_DO_TEXTO"))
       caminho = caminho.joinpath("alfabeto.txt")
@@ -172,20 +179,23 @@ def extrai_o_alfabeto() -> {str: [str]}:
       assert (caminho.exists())
       assert (caminho.is_file())
 
-      lista = aglomerado_de_linhas_do_arquivo(caminho)
    finally:
+      lista = aglomerado_de_linhas_do_arquivo(caminho)
       a = ord('A'); z = ord('Z')
       letras = map(lambda code: chr(code), range(a, z))
 
-   return { 
-      letra: desenho 
-      for (letra, desenho) in zip(letras, lista) 
+   return {
+      letra: desenho
+      for (letra, desenho) in zip(letras, lista)
    }
 
 def extrai_os_digitos() -> {str: [str]}:
    try:
-      caminho = Path("simbolos/números.txt")
-      lista = aglomerado_de_linhas_do_arquivo(caminho)
+      if CAMINHO_EXTERNO is None:
+         caminho = SIMBOLOS_NORMAIS.joinpath("números.txt")
+      else:
+         caminho = Path(CAMINHO_EXTERNO).joinpath("números.txt")
+
    except FileNotFoundError:
       caminho = Path(getenv("SIMBOLOS_DO_TEXTO"))
       caminho = caminho.joinpath("números.txt")
@@ -193,16 +203,19 @@ def extrai_os_digitos() -> {str: [str]}:
       assert (caminho is not None)
       assert (caminho.exists())
 
-      lista = aglomerado_de_linhas_do_arquivo(caminho)
    finally:
+      lista = aglomerado_de_linhas_do_arquivo(caminho)
       numeros = range(0, 10)
 
    return { digito: desenho for (digito, desenho) in zip(numeros, lista) }
 
 def extrai_a_pontuacao() -> {str: [str]}:
    try:
-      caminho = Path("simbolos/pontuação.txt")
-      lista = aglomerado_de_linhas_do_arquivo(caminho)
+      if CAMINHO_EXTERNO is None:
+         caminho = SIMBOLOS_NORMAIS.joinpath("pontuação.txt")
+      else:
+         caminho = Path(CAMINHO_EXTERNO).joinpath("pontuação.txt")
+
    except FileNotFoundError:
       caminho = Path(getenv("SIMBOLOS_DO_TEXTO"))
       caminho = caminho.joinpath("pontuação.txt")
@@ -210,8 +223,8 @@ def extrai_a_pontuacao() -> {str: [str]}:
       assert (caminho is not None)
       assert (caminho.exists())
 
-      lista = aglomerado_de_linhas_do_arquivo(caminho)
    finally:
+      lista = aglomerado_de_linhas_do_arquivo(caminho)
       pontuacao = [
          '{', '[', '(', '@', '*', '\\', '$', '^', ':', '!', '}', ']', ')'
          , '=', '?', '>', '+', '<', '.', ';', '%', '/', '~', '-', '#', ','
@@ -253,7 +266,7 @@ def tabela_de_desenhos() -> dict[str: MatrizTexto]:
    return output
 
 # == == == == == == == == == == == === == == == == == == == == == == == ===
-#                          Testes Unitários 
+#                          Testes Unitários
 # == == == == == == == == == == == === == == == == == == == == == == == ===
 from unittest import (TestCase)
 
@@ -329,7 +342,7 @@ class Unitarios(TestCase):
       In_c = self.TABLE['?']
       ESPACO = MatrizTexto.espaco_caractere()
 
-      Out = (In_a + ESPACO + In_b + ESPACO + In_c) 
+      Out = (In_a + ESPACO + In_b + ESPACO + In_c)
 
       Out += ESPACO
       Out += self.TABLE['F']
