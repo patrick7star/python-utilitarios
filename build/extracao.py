@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 def extracao_do_tarball_se_necessario() -> None:
-   caminho = Path("simbolos.tar")
+   caminho = Path("símbolos.tar")
 
    if caminho.exists():
       arquivo = TarFile.open(caminho, "r")
