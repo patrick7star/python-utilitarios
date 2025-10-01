@@ -6,7 +6,9 @@ from os import get_terminal_size
 from sys import platform, getsizeof
 # re-exportando.
 #from src.screen.tela_objetos import *       trocado!
-from screen.tela_objetos import *
+#from screen.tela_objetos import *           trocado!
+from .screen.matriz import (Matriz, Lados)
+from .screen.ponto import (Ponto)
 
 # determinando o que será importado.
 __all__ = ["Tela", "Ponto", "Matriz"]
@@ -172,10 +174,11 @@ class Tela:
    ...
 
    def escreve(self, ponto, string):
-      """Escreve uma string dada a posição. Se a
-      posição não for válida, ele não escreve
-      a string, com ser válido, digo ela não
-      transbordar a dimensão da tela."""
+      """
+      Escreve uma string dada a posição. Se a posição não for válida, ele 
+      não escreve a string, com ser válido, digo ela não transbordar a 
+      dimensão da tela.
+      """
       # apelidação para reutilizar o código sem
       # ficar remexendo cada canto.
       (L, C) = tuple(ponto)
@@ -197,20 +200,18 @@ class Tela:
          # registrando strings escritas.
          self._realizacoes.append(tuple(coords))
       ...
-   ...
 
    def lista_strings(self, ponto, * strings):
-      """Lista um monte de strings na ordem que
-      foram dadas. Se alguma tranbordar tanto
-      colunas como linhas, serão cortadas."""
+      """
+      Lista um monte de strings na ordem que foram dadas. Se alguma 
+      tranbordar tanto colunas como linhas, serão cortadas.
+      """
       # apelido para não precisar remexer todo código.
       (L, C) = tuple(ponto)
       filtro = []
-      # Vamos considerar todas strings como
-      # válidas, não cortando para encaxar
-      # o número de linhas. Posteriormente,
-      # vamos eliminar as que quebram o
-      # número de colunas.
+      # Vamos considerar todas strings como válidas, não cortando para 
+      # encaxar o número de linhas. Posteriormente, vamos eliminar as que 
+      # quebram o número de colunas.
       for s in strings:
          if C + len(s) <= self.colunas-1:
             filtro.append(s)
@@ -224,21 +225,19 @@ class Tela:
       # agora adicionando-as formalmente...
       self._realizacoes.append(tuple(coords))
       ...
-   ...
 
    def enquadra(self, ponto, altura=4, largura=5):
-      """ enquadra de determinado ponto. Faz o mesmo
-      que o circunscreve, porém, será preciso apena
-      o primeiro ponto/coordenada, e se quiser
-      passar altura ou largura do retângulo, que já
-      tem tamanhos definidos. """
+      """ 
+        Enquadra de determinado ponto. Faz o mesmo que o circunscreve, 
+      porém, será preciso apena o primeiro ponto/coordenada, e se quiser 
+      passar altura ou largura do retângulo, que já tem tamanhos definidos. 
+      """
       ponto_A = ponto
       ponto_B = Ponto(ponto.lin + altura, ponto.col + largura)
       self.circula(ponto_A, ponto_B)
-   ...
 
    def circula(self, A, B):
-      "desenha uma retângulo dado dois pontos distintos"
+      "Desenha uma retângulo dado dois pontos distintos."
       # algum for diferente em tipo.
       if not (isinstance(A, Ponto) and isinstance(B, Ponto)):
          raise TypeError("um dos argumentos não são do tipo 'Ponto'")
@@ -385,7 +384,6 @@ class Tela:
             self._agromera_modificacoes(4)
          ...
       ...
-   ...
 
    def __sizeof__(self):
       tm = getsizeof(self._matriz)
@@ -393,10 +391,9 @@ class Tela:
       dcol = getsizeof(self.colunas)
       dlin = getsizeof(self.linhas)
       return tm + tr + dcol + dlin
-   ...
    
    def desfazer(self):
-      "tal procedimento restaura estado antes da modificação"
+      "Tal procedimento restaura estado antes da modificação."
       # erro caso não haja mais Ctrl-Z's
       if len(self._realizacoes) == 0:
          raise Exception("Tela está vázia[SEM MODIFICAÇÕES]")
@@ -409,28 +406,34 @@ class Tela:
          (y, x, char) = celula
          self._matriz[y][x] = char
       ...
-   ...
    
-   # como algumas funções usam outras funções
-   # para realizar alterações na 'Tela', a pilha 
-   # de "últimas modificações" ficam com 'n' 
-   # feitas(sendo este 'n', o número que o procedimento
-   # realiza usando funções que geram as "últimas
-   # modificações") no total. Vamos aglomerar
-   # todos estes 'n' em só uma, e colocar de 
-   # volta na 'Pilha'. A quantia 'n' terá que 
-   # ser contada pelo codificador na hora.
    def _agromera_modificacoes(self, qtd):
+      """
+        Como algumas funções usam outras funções para realizar alterações 
+      na 'Tela', a pilha de "últimas modificações" ficam com 'n' 
+      feitas(sendo este 'n', o número que o procedimento realiza usando 
+      funções que geram as "últimas modificações") no total. Vamos 
+      aglomerar todos estes 'n' em só uma, e colocar de volta na 'Pilha'. 
+      A quantia 'n' terá que ser contada pelo codificador na hora.
+      """
       # lista para criar única modificação.
       modificacao = []
       while qtd > 0:
          remocao = self._realizacoes.pop()
          modificacao.extend(list(remocao))
          qtd -= 1
-      ...
+
       # então empilha novamente.
       self._realizacoes.append(tuple(modificacao))
-   ...
-...
 
+# == == == == == == == == == == == === == == == == == == == == == == == ===
+#                          Testes Unitários 
+# == == == == == == == == == == == === == == == == == == == == == == == ===
+from unittest import (TestCase)
 
+class RealizaRisco(TestCase):
+   def runTest(self):
+      instancia = Tela(10, 70, borda=True)
+      
+      instancia.risca(Ponto(4,7), 12, simbolo='x')
+      print(instancia)
