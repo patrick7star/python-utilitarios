@@ -10,7 +10,8 @@ from sys import (path as SearchPath)
 for item in SearchPath:
    print("\t\b\b\b- {}".format(item))
 
-from legivel import (tempo, tamanho, Unidade, Grandeza)
+#from legivel import 
+from utilitarios.legivel import (tempo, tamanho, Unidade, Grandeza)
 from random import randint
 
 for _ in range(randint(10, 15)):
@@ -20,8 +21,7 @@ for _ in range(randint(10, 15)):
       tamanho(X, Unidade.BIT, Grandeza.METRICO)
    )
 
-
-import src.romanos
+import utilitarios.romanos
 
 for _ in range(randint(3, 9)):
    In = randint(1, 999)
