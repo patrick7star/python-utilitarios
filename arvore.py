@@ -14,7 +14,7 @@ from decimal import Decimal
 from queue import SimpleQueue
 from pathlib import Path
 # Submódulos:
-from .tree.grade import (Matriz)
+from tree.grade import (Matriz)
 
 
 # Acumulador de trilhas de strings:
@@ -140,7 +140,7 @@ def escrevendo_trilha(caminho: Path, trilha: SimpleQueue,
    recuo = qtd * RECUO_SIMBOLO
 
    # váriavel global para transportar concatenação a outras funções.
-   if caminho.is_dir():
+   if caminho.is_dir() and (not caminho.is_symlink()):
       # lista contendo diretórios e arquivos.
       conteudo = listdir(caminho)
       # raíz dos arquivos listados.
@@ -158,19 +158,19 @@ def escrevendo_trilha(caminho: Path, trilha: SimpleQueue,
          profundidade += Decimal(1) 
          escrevendo_trilha(novo_caminho, trilha, profundidade)
          profundidade -= Decimal(1)
-      ...
+
    else:
+      _str = comprime_str(str(caminho.name))
+
       if caminho.is_file():
-         _str = comprime_str(str(caminho.name))
          fmt = "{0}{2} \"{1}\"\n".format(recuo, _str, GALHO_VH+GALHO_H)
+         trilha.put(fmt)
       else:
          trilha.put(
             "{0}{2} \"{1}\"(desconhecido)\n"
             .format(recuo, _str, GALHO_VH+GALHO_H)
          )
-      trilha.put(fmt)
-      ...
-   ...
+
 
 def escreve_trilha_dirs(path: Path, lines: SimpleQueue, depth: Decimal,
   is_root: Decimal) -> None:
