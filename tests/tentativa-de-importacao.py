@@ -4,7 +4,13 @@
  então funciona do mesmo modo se estiver em qualquer outro diretório do home.
 """
 
-from utilitarios.legivel import (tempo, tamanho, Unidade, Grandeza)
+# Biblioteca com caminhos:
+from sys import (path as SearchPath)
+
+for item in SearchPath:
+   print("\t\b\b\b- {}".format(item))
+
+from legivel import (tempo, tamanho, Unidade, Grandeza)
 from random import randint
 
 for _ in range(randint(10, 15)):
@@ -15,7 +21,7 @@ for _ in range(randint(10, 15)):
    )
 
 
-import utilitarios.romanos
+import src.romanos
 
 for _ in range(randint(3, 9)):
    In = randint(1, 999)
